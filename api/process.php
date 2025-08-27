@@ -67,6 +67,53 @@ class VideoProcessor {
         }
     }
 
+    private function findOverlayTemplate() {
+        // Look for uploaded template files with different extensions
+        $templateDir = '../template/';
+        $baseFilename = 'Preview Screen V4';
+        $extensions = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
+        
+        foreach ($extensions as $ext) {
+            $path = $templateDir . $baseFilename . '.' . $ext;
+            if (file_exists($path)) {
+                error_log("Found overlay template: $path");
+                return $path;
+            }
+        }
+        
+        error_log("No overlay template found");
+        return null;
+    }
+
+    private function findBackgroundAudio() {
+        // Look for uploaded audio files with different extensions
+        $audioDir = '../audio/';
+        $baseFilename = 'background_audio';
+        $extensions = ['mp3', 'wav', 'aac', 'ogg', 'm4a'];
+        
+        error_log("Searching for background audio in: $audioDir");
+        
+        foreach ($extensions as $ext) {
+            $path = $audioDir . $baseFilename . '.' . $ext;
+            error_log("Checking for audio file: $path");
+            if (file_exists($path)) {
+                error_log("Found background audio: $path");
+                return $path;
+            }
+        }
+        
+        // Check for the original audio file as fallback
+        $fallbackPath = '../audio/PEDRO PEDRO PEDRO   #shorts.mp3';
+        error_log("Checking fallback audio: $fallbackPath");
+        if (file_exists($fallbackPath)) {
+            error_log("Using fallback audio: $fallbackPath");
+            return $fallbackPath;
+        }
+        
+        error_log("No background audio found");
+        return null;
+    }
+
     public function processVideo() {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -136,16 +183,20 @@ class VideoProcessor {
 
         error_log("Creating professional slow motion with overlay: start=$startTime, end=$endTime, factor=$slowFactor, duration=$duration");
 
-        // Path to overlay template
-        $overlayPath = '../template/Preview Screen V4.png';
-        if (!file_exists($overlayPath)) {
-            error_log("Overlay template not found, proceeding without overlay");
+        // Path to overlay template - check for uploaded template first
+        $overlayPath = $this->findOverlayTemplate();
+        if (!$overlayPath) {
+            error_log("No overlay template found, proceeding without overlay");
             $addOverlay = false;
         }
 
+        // Path to background audio - check for uploaded audio
+        $backgroundAudio = $this->findBackgroundAudio();
+        error_log("Background audio result: " . ($backgroundAudio ? $backgroundAudio : "NULL"));
+
         // Ultra-smooth slow motion with professional overlay
         try {
-            $this->createUltraSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay);
+            $this->createUltraSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay, $backgroundAudio);
             return;
         } catch (Exception $e) {
             error_log("Ultra-smooth with overlay failed, trying standard: " . $e->getMessage());
@@ -153,7 +204,7 @@ class VideoProcessor {
 
         // Fallback to standard method with overlay
         try {
-            $this->createStandardSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay);
+            $this->createStandardSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay, $backgroundAudio);
             return;
         } catch (Exception $e) {
             error_log("Standard with overlay failed, trying without overlay: " . $e->getMessage());
@@ -185,21 +236,14 @@ class VideoProcessor {
         }
     }
 
-    private function createUltraSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay) {
+    private function createUltraSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay, $backgroundAudio = null) {
         error_log("Creating ultra-smooth slow motion with professional overlay");
         
-        // Get background audio file
-        $audioDir = dirname(__DIR__) . '/audio/';
-        $audioFiles = glob($audioDir . '*');
-        $backgroundAudio = null;
-        
-        // Find the first audio file in the audio folder
-        foreach ($audioFiles as $file) {
-            if (is_file($file)) {
-                $backgroundAudio = $file;
-                break;
-            }
+        // Use passed background audio or find one if not provided
+        if (!$backgroundAudio) {
+            $backgroundAudio = $this->findBackgroundAudio();
         }
+        error_log("Using background audio: " . ($backgroundAudio ? $backgroundAudio : "NULL"));
         
         // Get video frame rate
         $frameRateCmd = sprintf('"%s" -i "%s" 2>&1', $this->ffmpegPath, $inputPath);
@@ -223,11 +267,11 @@ class VideoProcessor {
         $slowMotionDuration = ($endTime - $startTime) / $slowFactor;
         $finalDuration = $originalDuration - ($endTime - $startTime) + $slowMotionDuration;
         
+        // Calculate audio loops for background audio (if used)
+        $audioLoops = ceil($finalDuration / 9.01); // 9.01 is approximate duration - will be updated for actual audio
+        
         // Complex filter with overlay scaled to fit video and background audio replacement
         if ($addOverlay && $backgroundAudio) {
-            // Calculate how many times we need to repeat the audio
-            $audioLoops = ceil($finalDuration / 9.01); // 9.01 is the duration of our audio file
-            
             $filterComplex = sprintf(
                 "[0:v]split=3[v1][v2][v3]; " .
                 "[v1]trim=start=0:end=%.2f,setpts=PTS-STARTPTS[v1out]; " .
@@ -300,21 +344,14 @@ class VideoProcessor {
         error_log("Ultra-smooth slow motion with overlay completed successfully");
     }
 
-    private function createStandardSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay) {
+    private function createStandardSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay, $backgroundAudio = null) {
         error_log("Creating standard smooth slow motion with overlay");
         
-        // Get background audio file
-        $audioDir = dirname(__DIR__) . '/audio/';
-        $audioFiles = glob($audioDir . '*');
-        $backgroundAudio = null;
-        
-        // Find the first audio file in the audio folder
-        foreach ($audioFiles as $file) {
-            if (is_file($file)) {
-                $backgroundAudio = $file;
-                break;
-            }
+        // Use passed background audio or find one if not provided
+        if (!$backgroundAudio) {
+            $backgroundAudio = $this->findBackgroundAudio();
         }
+        error_log("Using background audio: " . ($backgroundAudio ? $backgroundAudio : "NULL"));
         
         // Calculate final video duration
         $originalDuration = $this->getVideoDuration($inputPath);

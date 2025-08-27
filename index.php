@@ -72,9 +72,14 @@ session_start();
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="card shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h3 class="mb-0"><i class="fas fa-video"></i> Professional Slow Motion Creator</h3>
-                        <small>Automatic 4x slow motion with cinema-quality overlay (4-7 seconds)</small>
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0"><i class="fas fa-video"></i> Professional Slow Motion Creator</h3>
+                            <small>Automatic 4x slow motion with cinema-quality overlay (4-7 seconds)</small>
+                        </div>
+                        <a href="upload-assets.html" class="btn btn-light btn-sm">
+                            <i class="fas fa-cog"></i> Manage Templates & Audio
+                        </a>
                     </div>
                     <div class="card-body">
                         <!-- Upload Section -->
