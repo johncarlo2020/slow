@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>Video Upload System - Connection Test</h1>
+    <div id="test-results"></div>
+    
+    <script>
+        const results = document.getElementById('test-results');
+        
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+        
+        // Test 1: Check if upload API is accessible
+        async function testUploadAPI() {
+            try {
+                addResult('Testing upload API accessibility...', 'info');
+                
+                const response = await fetch('api/upload.php', {
+                    method: 'POST',
+                    body: new FormData()
+                });
+                
+                if (response.ok) {
+                    const text = await response.text();
+                    addResult('✓ Upload API is accessible (Status: ' + response.status + ')', 'success');
+                    addResult('Response: ' + text, 'info');
+                } else {
+                    addResult('✗ Upload API returned error: ' + response.status, 'error');
+                }
+                
+            } catch (error) {
+                addResult('✗ Failed to connect to upload API: ' + error.message, 'error');
+            }
+        }
+        
+        // Test 2: Check if process API is accessible
+        async function testProcessAPI() {
+            try {
+                addResult('Testing process API accessibility...', 'info');
+                
+                const response = await fetch('api/process.php', {
+                    method: 'POST',
+                    body: new FormData()
+                });
+                
+                if (response.ok) {
+                    const text = await response.text();
+                    addResult('✓ Process API is accessible (Status: ' + response.status + ')', 'success');
+                    addResult('Response: ' + text, 'info');
+                } else {
+                    addResult('✗ Process API returned error: ' + response.status, 'error');
+                }
+                
+            } catch (error) {
+                addResult('✗ Failed to connect to process API: ' + error.message, 'error');
+            }
+        }
+        
+        // Test 3: Check basic JavaScript functionality
+        function testJavaScript() {
+            addResult('Testing JavaScript functionality...', 'info');
+            
+            try {
+                // Test Promise
+                Promise.resolve('test').then(() => {
+                    addResult('✓ Promises are working', 'success');
+                });
+                
+                // Test fetch
+                if (typeof fetch !== 'undefined') {
+                    addResult('✓ Fetch API is available', 'success');
+                } else {
+                    addResult('✗ Fetch API is not available', 'error');
+                }
+                
+                // Test FormData
+                if (typeof FormData !== 'undefined') {
+                    addResult('✓ FormData is available', 'success');
+                } else {
+                    addResult('✗ FormData is not available', 'error');
+                }
+                
+            } catch (error) {
+                addResult('✗ JavaScript error: ' + error.message, 'error');
+            }
+        }
+        
+        // Run tests
+        document.addEventListener('DOMContentLoaded', async () => {
+            addResult('Starting connection tests...', 'info');
+            
+            testJavaScript();
+            await testUploadAPI();
+            await testProcessAPI();
+            
+            addResult('All tests completed. Check results above.', 'info');
+        });
+        
+        // Catch any errors
+        window.addEventListener('error', (event) => {
+            addResult('Global error caught: ' + event.error.message, 'error');
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            addResult('Unhandled promise rejection: ' + event.reason, 'error');
+        });
+    </script>
+</body>
+</html>

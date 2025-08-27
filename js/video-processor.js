@@ -1,3 +1,14 @@
+// Global error handling
+window.addEventListener('error', (event) => {
+    console.error('Global JavaScript error:', event.error);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+    console.error('Unhandled promise rejection:', event.reason);
+    // Prevent the default behavior that logs the error to console
+    event.preventDefault();
+});
+
 class VideoProcessor {
     constructor() {
         this.currentFile = null;
@@ -98,23 +109,32 @@ class VideoProcessor {
         });
 
         xhr.addEventListener('load', () => {
-            if (xhr.status === 200) {
-                const response = JSON.parse(xhr.responseText);
-                if (response.success) {
-                    this.videoUrl = response.videoUrl;
-                    this.showVideoControls(response.videoUrl);
-                    progressContainer.style.display = 'none';
+            try {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        this.videoUrl = response.videoUrl;
+                        this.showVideoControls(response.videoUrl);
+                        progressContainer.style.display = 'none';
+                    } else {
+                        console.error('Upload failed:', response.message);
+                        alert('Upload failed: ' + response.message);
+                        progressContainer.style.display = 'none';
+                    }
                 } else {
-                    alert('Upload failed: ' + response.message);
+                    console.error('Upload failed with status:', xhr.status, xhr.responseText);
+                    alert('Upload failed. Please try again.');
                     progressContainer.style.display = 'none';
                 }
-            } else {
+            } catch (error) {
+                console.error('Error processing upload response:', error);
                 alert('Upload failed. Please try again.');
                 progressContainer.style.display = 'none';
             }
         });
 
-        xhr.addEventListener('error', () => {
+        xhr.addEventListener('error', (event) => {
+            console.error('Upload error event:', event);
             alert('Upload failed. Please try again.');
             progressContainer.style.display = 'none';
         });
@@ -162,17 +182,25 @@ class VideoProcessor {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Process response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Process response data:', data);
             if (data.success) {
                 this.showResults(data.originalVideo, data.processedVideo);
             } else {
+                console.error('Processing failed:', data.message);
                 alert('Processing failed: ' + data.message);
                 this.hideProcessingStatus();
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Processing error:', error);
             alert('Processing failed. Please try again.');
             this.hideProcessingStatus();
         });

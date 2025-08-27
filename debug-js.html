@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug JavaScript Issues</title>
+</head>
+<body>
+    <h1>JavaScript Debug Test</h1>
+    <div id="status">Testing...</div>
+    
+    <script>
+        console.log('Debug script loaded');
+        
+        // Test basic fetch functionality
+        async function testConnection() {
+            try {
+                console.log('Testing API connection...');
+                
+                // Test if API endpoint exists
+                const response = await fetch('api/upload.php', {
+                    method: 'POST',
+                    body: new FormData() // Empty form data
+                });
+                
+                console.log('Response status:', response.status);
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                document.getElementById('status').innerHTML = 'API accessible. Check console for details.';
+                
+            } catch (error) {
+                console.error('Connection error:', error);
+                document.getElementById('status').innerHTML = 'Connection failed: ' + error.message;
+            }
+        }
+        
+        // Test XMLHttpRequest
+        function testXHR() {
+            console.log('Testing XMLHttpRequest...');
+            const xhr = new XMLHttpRequest();
+            
+            xhr.addEventListener('load', () => {
+                console.log('XHR load event, status:', xhr.status);
+                console.log('XHR response:', xhr.responseText);
+            });
+            
+            xhr.addEventListener('error', (e) => {
+                console.error('XHR error event:', e);
+            });
+            
+            xhr.addEventListener('abort', (e) => {
+                console.error('XHR abort event:', e);
+            });
+            
+            xhr.open('POST', 'api/upload.php');
+            xhr.send(new FormData());
+        }
+        
+        // Run tests
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, running tests...');
+            testConnection();
+            setTimeout(testXHR, 1000);
+        });
+        
+        // Catch any unhandled promise rejections
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+            event.preventDefault();
+        });
+        
+        // Catch any global errors
+        window.addEventListener('error', (event) => {
+            console.error('Global error:', event.error);
+        });
+    </script>
+</body>
+</html>

@@ -181,6 +181,16 @@ session_start();
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Add global error handling before loading the main script
+        window.addEventListener('error', (event) => {
+            console.error('Page error:', event.error);
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection on page:', event.reason);
+        });
+    </script>
     <script src="js/video-processor.js"></script>
 </body>
 </html>
