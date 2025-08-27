@@ -1,0 +1,20 @@
+# Ignore uploaded files
+uploads/*.mp4
+uploads/*.avi
+uploads/*.mov
+uploads/*.wmv
+uploads/*.webm
+
+# Ignore processed files
+processed/*.mp4
+
+# Ignore temporary files
+*.tmp
+*.temp
+
+# Ignore log files
+*.log
+
+# Ignore system files
+.DS_Store
+Thumbs.db
