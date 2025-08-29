@@ -75,11 +75,23 @@ class VideoProcessor {
     }
 
     handleFileSelect(file) {
-        // Validate file type
-        if (!file.type.startsWith('video/')) {
-            alert('Please select a valid video file.');
-            return;
-        }
+            // Validate file type (accept H.264 formats: .mp4, .m4v, .mov)
+            const acceptedTypes = [
+                'video/mp4',
+                'video/x-m4v',
+                'video/quicktime', // .mov
+            ];
+            const acceptedExtensions = [
+                '.mp4', '.m4v', '.mov'
+            ];
+            const fileType = file.type;
+            const fileName = file.name.toLowerCase();
+            const isAcceptedType = acceptedTypes.includes(fileType);
+            const isAcceptedExt = acceptedExtensions.some(ext => fileName.endsWith(ext));
+            if (!(fileType.startsWith('video/') || isAcceptedType || isAcceptedExt)) {
+                alert('Please select a valid video file (MP4, M4V, MOV, H.264).');
+                return;
+            }
 
         // Validate file size (max 100MB)
         if (file.size > 100 * 1024 * 1024) {
