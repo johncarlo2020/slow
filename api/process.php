@@ -845,10 +845,11 @@ class VideoProcessor {
         }
         
         if ($addOverlay && file_exists($overlayPath)) {
-            // Always scale template to 1080x1920 for portrait videos
-            error_log("Forcing template overlay to 1080x1920 portrait");
-            $filterParts[] = sprintf('[%d:v]scale=1080:1920:force_original_aspect_ratio=disable[overlay_scaled]', $overlayInputIndex);
-            $filterParts[] = '[0:v][overlay_scaled]overlay=0:0[video_with_overlay]';
+                // Stretch both video and template to fill 1080x1920 portrait frame (may distort)
+                error_log("Stretching video and template to fill 1080x1920 portrait frame (may distort)");
+                $filterParts[] = '[0:v]scale=1080:1920:force_original_aspect_ratio=disable[video_fitted]';
+                $filterParts[] = sprintf('[%d:v]scale=1080:1920:force_original_aspect_ratio=disable[overlay_scaled]', $overlayInputIndex);
+                $filterParts[] = '[video_fitted][overlay_scaled]overlay=0:0[video_with_overlay]';
         }
         
         $filterComplex = implode(';', $filterParts);
@@ -891,10 +892,11 @@ class VideoProcessor {
             $cmd .= ' -map 0:a?'; // Use original audio if no background audio
         }
         
-        // Video encoding settings
-        $cmd .= ' -c:v libx264 -preset medium -crf 18';
-        $cmd .= ' -pix_fmt yuv420p';
-        
+                    // Always scale and pad video to fit template size (1080x1920)
+                    error_log("Scaling and padding video to fit template size 1080x1920");
+                    $filterParts[] = '[0:v]scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1[video_fitted]';
+                    $filterParts[] = sprintf('[%d:v]scale=1080:1920:force_original_aspect_ratio=disable[overlay_scaled]', $overlayInputIndex);
+                    $filterParts[] = '[video_fitted][overlay_scaled]overlay=0:0[video_with_overlay]';
         // Audio encoding settings
         $cmd .= ' -c:a aac -b:a 128k -ar 44100';
         

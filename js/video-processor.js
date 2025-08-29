@@ -40,9 +40,11 @@ class VideoProcessor {
             }
         });
 
-        // Click to upload
-        uploadArea.addEventListener('click', () => {
-            videoInput.click();
+        // Click to upload (only if direct target is uploadArea)
+        uploadArea.addEventListener('click', (e) => {
+            if (e.target === uploadArea) {
+                videoInput.click();
+            }
         });
 
         videoInput.addEventListener('change', (e) => {
@@ -87,6 +89,7 @@ class VideoProcessor {
 
         this.currentFile = file;
         this.uploadFile(file);
+        // Do NOT reset file input here
     }
 
     uploadFile(file) {
@@ -116,6 +119,9 @@ class VideoProcessor {
                 console.error('Error processing upload response:', error);
                 alert('Upload failed. Please try again.');
             }
+            // Reset file input after upload completes
+            const videoInput = document.getElementById('video-input');
+            if (videoInput) videoInput.value = "";
         });
 
         xhr.addEventListener('error', (event) => {
