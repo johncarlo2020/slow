@@ -152,6 +152,30 @@ class VideoProcessor {
             // Process the video with overlay
             $this->createSlowMotionVideoWithOverlay($videoPath, $outputPath, $startTime, $endTime, $slowFactor, $addOverlay);
 
+            // Optimize the processed video for web delivery and faster downloads
+            $optimizedFilename = 'optimized_' . $outputFilename;
+            $optimizedPath = $this->outputDir . $optimizedFilename;
+            
+            try {
+                error_log("Starting web optimization for faster downloads");
+                $this->optimizeVideoForWeb($outputPath, $optimizedPath);
+                
+                // If optimization successful, use optimized version and remove original
+                if (file_exists($optimizedPath) && filesize($optimizedPath) > 1000) {
+                    unlink($outputPath); // Remove unoptimized version
+                    rename($optimizedPath, $outputPath); // Use optimized version
+                    error_log("Web optimization completed successfully");
+                } else {
+                    error_log("Optimization failed, keeping original");
+                }
+            } catch (Exception $e) {
+                error_log("Web optimization failed: " . $e->getMessage() . ", keeping original");
+                // Clean up failed optimization file
+                if (file_exists($optimizedPath)) {
+                    unlink($optimizedPath);
+                }
+            }
+
             echo json_encode([
                 'success' => true,
                 'message' => 'Professional slow motion video created successfully',
@@ -275,7 +299,7 @@ class VideoProcessor {
             $filterComplex = sprintf(
                 "[0:v]split=3[v1][v2][v3]; " .
                 "[v1]trim=start=0:end=%.2f,setpts=PTS-STARTPTS[v1out]; " .
-                "[v2]trim=start=%.2f:end=%.2f,minterpolate=fps=%.1f:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1:scd=none,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
+                "[v2]trim=start=%.2f:end=%.2f,minterpolate=fps=%.1f:mi_mode=blend:mc_mode=obmc:me_mode=bidir:scd=none,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
                 "[v3]trim=start=%.2f,setpts=PTS-STARTPTS[v3out]; " .
                 "[v1out][v2out][v3out]concat=n=3:v=1:a=0[video]; " .
                 "[1:v]scale=%d:%d[overlay_scaled]; " .
@@ -310,7 +334,7 @@ class VideoProcessor {
             );
 
             $cmd = sprintf(
-                '"%s" -i "%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset slower -crf 14 -pix_fmt yuv420p -profile:v high -level 4.1 -bf 3 -g 60 -keyint_min 60 -sc_threshold 0 -r %.1f -c:a aac -b:a 256k -avoid_negative_ts make_zero -y "%s" 2>&1',
+                '"%s" -i "%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset faster -crf 23 -pix_fmt yuv420p -profile:v main -level 3.1 -movflags +faststart -r %.1f -c:a aac -b:a 128k -avoid_negative_ts make_zero -y "%s" 2>&1',
                 $this->ffmpegPath, $inputPath, $overlayPath, $filterComplex, $targetFps, $outputPath
             );
         } else if ($backgroundAudio) {
@@ -324,9 +348,9 @@ class VideoProcessor {
                 $startTime, $startTime, $endTime, $targetFps, 1 / $slowFactor, $endTime
             );
 
-            // Use -stream_loop for reliable audio looping with enhanced video settings
+            // Use -stream_loop for reliable audio looping with optimized video settings
             $cmd = sprintf(
-                '"%s" -stream_loop %d -i "%s" -i "%s" -filter_complex "%s" -map "[vout]" -map 1:a -t %.2f -c:v libx264 -preset slower -crf 14 -pix_fmt yuv420p -profile:v high -level 4.1 -bf 3 -g 60 -keyint_min 60 -sc_threshold 0 -r %.1f -c:a aac -b:a 256k -af "volume=0.8" -avoid_negative_ts make_zero -y "%s" 2>&1',
+                '"%s" -stream_loop %d -i "%s" -i "%s" -filter_complex "%s" -map "[vout]" -map 1:a -t %.2f -c:v libx264 -preset faster -crf 23 -pix_fmt yuv420p -profile:v main -level 3.1 -movflags +faststart -r %.1f -c:a aac -b:a 128k -af "volume=0.8" -avoid_negative_ts make_zero -y "%s" 2>&1',
                 $this->ffmpegPath, max(1, $audioLoops), $inputPath, $backgroundAudio, $filterComplex, $finalDuration, $targetFps, $outputPath
             );
         } else {
@@ -501,8 +525,8 @@ class VideoProcessor {
         
         error_log("Original FPS: $originalFps");
         
-        // Calculate target FPS for smooth slow motion
-        $targetFps = min($originalFps * 2, 60); // Cap at 60fps to avoid issues
+        // Calculate target FPS for smooth slow motion - reduce for faster processing
+        $targetFps = min($originalFps * 1.5, 50); // Reduced from 2x to 1.5x and capped at 50fps
         
         // Improved filter that prevents frame freezing
         $filterComplex = sprintf(
@@ -528,7 +552,7 @@ class VideoProcessor {
         );
 
         $cmd = sprintf(
-            '"%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p -r %.1f -c:a aac -b:a 192k -avoid_negative_ts make_zero -y "%s" 2>&1',
+            '"%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset fast -crf 25 -pix_fmt yuv420p -movflags +faststart -r %.1f -c:a aac -b:a 128k -avoid_negative_ts make_zero -y "%s" 2>&1',
             $this->ffmpegPath,
             $inputPath,
             $filterComplex,
@@ -576,7 +600,7 @@ class VideoProcessor {
         );
 
         $cmd = sprintf(
-            '"%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset slower -crf 14 -pix_fmt yuv420p -profile:v high -level 4.1 -bf 3 -g 60 -keyint_min 60 -sc_threshold 0 -movflags +faststart -c:a aac -b:a 256k -avoid_negative_ts make_zero -y "%s" 2>&1',
+            '"%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset fast -crf 25 -pix_fmt yuv420p -movflags +faststart -c:a aac -b:a 128k -avoid_negative_ts make_zero -y "%s" 2>&1',
             $this->ffmpegPath,
             $inputPath,
             $filterComplex,
@@ -771,7 +795,11 @@ class VideoProcessor {
         
         // Log the command and output for debugging
         error_log("Command executed: $command");
-        error_log("Command output: $output");
+        if (strlen($output) > 1000) {
+            error_log("Command output (truncated): " . substr($output, 0, 1000) . "...");
+        } else {
+            error_log("Command output: $output");
+        }
         
         // Check for common error indicators
         $errorIndicators = [
@@ -796,6 +824,47 @@ class VideoProcessor {
         }
         
         return $output;
+    }
+
+    private function optimizeVideoForWeb($inputPath, $outputPath) {
+        error_log("Optimizing video for web delivery");
+        
+        // Check if input file is larger than 50MB, if so, apply more aggressive compression
+        $inputSize = filesize($inputPath);
+        $isLargeFile = $inputSize > (50 * 1024 * 1024); // 50MB
+        
+        if ($isLargeFile) {
+            error_log("Large file detected ($inputSize bytes), applying aggressive compression");
+            $crf = 28;
+            $preset = 'faster';
+            $maxrate = '1000k';
+            $bufsize = '2000k';
+        } else {
+            $crf = 25;
+            $preset = 'fast';
+            $maxrate = '1500k';
+            $bufsize = '3000k';
+        }
+        
+        $cmd = sprintf(
+            '"%s" -i "%s" -c:v libx264 -preset %s -crf %d -maxrate %s -bufsize %s -movflags +faststart -pix_fmt yuv420p -profile:v baseline -level 3.0 -c:a aac -b:a 96k -ar 44100 -y "%s" 2>&1',
+            $this->ffmpegPath,
+            $inputPath,
+            $preset,
+            $crf,
+            $maxrate,
+            $bufsize,
+            $outputPath
+        );
+        
+        error_log("Web optimization command: $cmd");
+        $this->executeCommand($cmd);
+        
+        $outputSize = filesize($outputPath);
+        $compressionRatio = round((1 - ($outputSize / $inputSize)) * 100, 1);
+        error_log("Compression completed. Original: {$inputSize} bytes, Optimized: {$outputSize} bytes, Saved: {$compressionRatio}%");
+        
+        return true;
     }
 }
 

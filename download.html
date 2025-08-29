@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Download Video - Samsung Slow Motion Creator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: url('background/bg.webp') center center;
+            background-size: cover;
+            background-attachment: fixed;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .download-container {
+            height: 100vh;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .download-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            height: 60px;
+            flex-shrink: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .back-button {
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 12px;
+            padding: 10px 15px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+        
+        .brand-logo {
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .download-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .download-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 450px;
+        }
+        
+        .download-icon {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .download-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .download-subtitle {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .video-info {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+        
+        .video-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+        
+        .video-details {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .download-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 15px;
+            padding: 15px 40px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            text-decoration: none;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .download-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .download-button:active {
+            transform: translateY(-1px);
+        }
+        
+        .loading-state {
+            display: none;
+            text-align: center;
+            color: #666;
+        }
+        
+        .error-state {
+            display: none;
+            background: rgba(248, 215, 218, 0.9);
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 450px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 767px) {
+            .download-container {
+                padding: 15px;
+            }
+            
+            .download-header {
+                padding: 8px 12px;
+                height: 50px;
+                margin-bottom: 15px;
+            }
+            
+            .brand-logo {
+                font-size: 1.1rem;
+                letter-spacing: 2px;
+            }
+            
+            .download-card {
+                padding: 25px;
+                border-radius: 20px;
+            }
+            
+            .download-title {
+                font-size: 1.4rem;
+            }
+            
+            .download-subtitle {
+                font-size: 0.9rem;
+            }
+            
+            .download-icon {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="download-container">
+        <!-- Header -->
+        <div class="download-header">
+            <a href="video-gallery.html" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back</span>
+            </a>
+            <div class="brand-logo">SAMSUNG</div>
+        </div>
+
+        <!-- Download Content -->
+        <div class="download-content">
+            <!-- Loading State -->
+            <div id="loading-state" class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading video information...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="error-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h5>Video Not Found</h5>
+                <p id="error-message">The requested video could not be found or is no longer available.</p>
+            </div>
+
+            <!-- Download Card -->
+            <div id="download-card" class="download-card" style="display: none;">
+                <div class="download-icon">
+                    <i class="fas fa-download"></i>
+                </div>
+                
+                <h2 class="download-title">Download Video</h2>
+                <p class="download-subtitle">Your video is ready for download. Click the button below to save it to your device.</p>
+                
+                <div class="video-info">
+                    <div class="video-name" id="video-name">Video Name</div>
+                    <div class="video-details" id="video-details">Video Details</div>
+                </div>
+                
+                <a href="#" id="download-link" class="download-button">
+                    <i class="fas fa-download"></i>
+                    <span>Download Video</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Download Page JavaScript -->
+    <script>
+        class DownloadPage {
+            constructor() {
+                this.videoFilename = null;
+                this.videoData = null;
+                this.downloadUrl = null;
+                
+                console.log('DownloadPage constructor called');
+                this.loadVideo();
+            }
+
+            loadVideo() {
+                console.log('Loading video for download...');
+                // Get video filename from URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                this.videoFilename = urlParams.get('video');
+
+                if (!this.videoFilename) {
+                    this.showError('No video specified in URL');
+                    return;
+                }
+
+                this.fetchVideoInfo();
+            }
+
+            async fetchVideoInfo() {
+                try {
+                    console.log('Fetching video info for download:', this.videoFilename);
+                    
+                    // Show loading state
+                    document.getElementById('loading-state').style.display = 'block';
+                    
+                    const response = await fetch(`api/get-video-info.php?filename=${encodeURIComponent(this.videoFilename)}`);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        console.log('Video info loaded for download:', data.video);
+                        this.videoData = data.video;
+                        this.downloadUrl = data.downloadUrl;
+                        this.displayDownloadInfo();
+                    } else {
+                        throw new Error(data.message || 'Failed to load video information');
+                    }
+                } catch (error) {
+                    console.error('Error loading video for download:', error);
+                    this.showError('Failed to load video: ' + error.message);
+                }
+            }
+
+            displayDownloadInfo() {
+                console.log('Displaying download info...');
+                
+                const loadingState = document.getElementById('loading-state');
+                const downloadCard = document.getElementById('download-card');
+                const videoName = document.getElementById('video-name');
+                const videoDetails = document.getElementById('video-details');
+                const downloadLink = document.getElementById('download-link');
+
+                // Hide loading
+                loadingState.style.display = 'none';
+
+                // Set video information
+                if (videoName && this.videoData) {
+                    videoName.textContent = this.videoData.displayName || this.videoFilename;
+                }
+
+                if (videoDetails && this.videoData) {
+                    const size = this.videoData.size ? this.formatFileSize(this.videoData.size) : 'Unknown size';
+                    const date = this.videoData.created_at ? new Date(this.videoData.created_at).toLocaleDateString() : 'Unknown date';
+                    videoDetails.textContent = `${size} • Created ${date}`;
+                }
+
+                // Set download link
+                if (downloadLink && this.downloadUrl) {
+                    downloadLink.href = this.downloadUrl;
+                    downloadLink.onclick = (e) => {
+                        console.log('Download initiated from download page for:', this.videoFilename);
+                        // Track download
+                    };
+                }
+
+                // Show download card
+                downloadCard.style.display = 'block';
+            }
+
+            showError(message) {
+                console.error('Showing download error:', message);
+                
+                const loadingState = document.getElementById('loading-state');
+                const errorState = document.getElementById('error-state');
+                const errorMessage = document.getElementById('error-message');
+                
+                loadingState.style.display = 'none';
+                
+                if (errorMessage) {
+                    errorMessage.textContent = message;
+                }
+                
+                errorState.style.display = 'block';
+            }
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, initializing DownloadPage...');
+            new DownloadPage();
+        });
+    </script>
+</body>
+</html>

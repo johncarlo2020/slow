@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Code Test</title>
+    <style>
+        .test-container {
+            max-width: 400px;
+            margin: 50px auto;
+            text-align: center;
+            padding: 20px;
+        }
+        .qr-canvas {
+            border: 1px solid #ccc;
+            margin: 20px 0;
+        }
+        .error {
+            color: red;
+            background: #ffe6e6;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            color: green;
+            background: #e6ffe6;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2>QR Code Library Test</h2>
+        <div id="status">Testing QR code library...</div>
+        <canvas id="qr-canvas" class="qr-canvas"></canvas>
+        <div id="fallback-qr"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+        async function testQRCode() {
+            const statusDiv = document.getElementById('status');
+            const canvas = document.getElementById('qr-canvas');
+            const fallbackDiv = document.getElementById('fallback-qr');
+            
+            try {
+                // Check if QRCode library loaded
+                if (typeof QRCode === 'undefined') {
+                    throw new Error('QRCode library not loaded');
+                }
+                
+                statusDiv.innerHTML = '<div class="success">QRCode library loaded successfully!</div>';
+                
+                // Test QR code generation
+                const testUrl = 'https://example.com/test-download';
+                await QRCode.toCanvas(canvas, testUrl, {
+                    width: 200,
+                    margin: 2,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                });
+                
+                statusDiv.innerHTML += '<div class="success">QR Code generated successfully!</div>';
+                statusDiv.innerHTML += '<div>Test URL: ' + testUrl + '</div>';
+                
+            } catch (error) {
+                console.error('QR Code error:', error);
+                statusDiv.innerHTML = '<div class="error">QR Code Error: ' + error.message + '</div>';
+                
+                // Fallback to Google Charts QR API
+                const fallbackUrl = 'https://example.com/test-fallback';
+                const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chl=${encodeURIComponent(fallbackUrl)}&chs=200x200`;
+                
+                fallbackDiv.innerHTML = `
+                    <h3>Fallback QR Code (Google Charts API):</h3>
+                    <img src="${qrUrl}" alt="QR Code" style="border: 1px solid #ccc;">
+                    <div>Fallback URL: ${fallbackUrl}</div>
+                `;
+            }
+        }
+        
+        // Test when page loads
+        window.addEventListener('load', testQRCode);
+        
+        // Also test after a delay in case of slow loading
+        setTimeout(testQRCode, 2000);
+    </script>
+</body>
+</html>
