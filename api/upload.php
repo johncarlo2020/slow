@@ -31,6 +31,11 @@ class VideoUploader {
     }
 
     public function handleUpload() {
+            // Debug: log raw $_FILES and $_POST for troubleshooting
+            file_put_contents(__DIR__ . '/../uploads/upload_debug.log',
+                "FILES: " . print_r($_FILES, true) . "\nPOST: " . print_r($_POST, true) . "\n\n",
+                FILE_APPEND
+            );
         try {
             if (!isset($_FILES['video'])) {
                 throw new Exception('No video file uploaded');
