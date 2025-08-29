@@ -90,23 +90,12 @@ class VideoProcessor {
     }
 
     uploadFile(file) {
-        const progressContainer = document.getElementById('progress-container');
-        const uploadProgress = document.getElementById('upload-progress');
+        // Skip progress display for simplified interface
         
-        progressContainer.style.display = 'block';
-
         const formData = new FormData();
         formData.append('video', file);
 
         const xhr = new XMLHttpRequest();
-
-        xhr.upload.addEventListener('progress', (e) => {
-            if (e.lengthComputable) {
-                const percentComplete = (e.loaded / e.total) * 100;
-                uploadProgress.style.width = percentComplete + '%';
-                uploadProgress.textContent = Math.round(percentComplete) + '%';
-            }
-        });
 
         xhr.addEventListener('load', () => {
             try {
@@ -115,28 +104,23 @@ class VideoProcessor {
                     if (response.success) {
                         this.videoUrl = response.videoUrl;
                         this.showVideoControls(response.videoUrl);
-                        progressContainer.style.display = 'none';
                     } else {
                         console.error('Upload failed:', response.message);
                         alert('Upload failed: ' + response.message);
-                        progressContainer.style.display = 'none';
                     }
                 } else {
                     console.error('Upload failed with status:', xhr.status, xhr.responseText);
                     alert('Upload failed. Please try again.');
-                    progressContainer.style.display = 'none';
                 }
             } catch (error) {
                 console.error('Error processing upload response:', error);
                 alert('Upload failed. Please try again.');
-                progressContainer.style.display = 'none';
             }
         });
 
         xhr.addEventListener('error', (event) => {
             console.error('Upload error event:', event);
             alert('Upload failed. Please try again.');
-            progressContainer.style.display = 'none';
         });
 
         xhr.open('POST', 'api/upload.php');
@@ -195,32 +179,41 @@ class VideoProcessor {
                 this.showResults(data.originalVideo, data.processedVideo);
             } else {
                 console.error('Processing failed:', data.message);
-                alert('Processing failed: ' + data.message);
+                this.showToast('Processing failed: ' + data.message, 'error');
                 this.hideProcessingStatus();
             }
         })
         .catch(error => {
             console.error('Processing error:', error);
-            alert('Processing failed. Please try again.');
+            this.showToast('Processing failed. Please try again.', 'error');
             this.hideProcessingStatus();
         });
     }
 
     showProcessingStatus() {
-        document.getElementById('video-controls').style.display = 'none';
-        document.getElementById('processing-status').style.display = 'block';
+        const videoProgress = document.getElementById('video-progress');
+        const processBtn = document.getElementById('process-btn');
+        
+        // Hide process button and show progress
+        processBtn.style.display = 'none';
+        videoProgress.style.display = 'block';
         
         // Simulate progress (since FFmpeg progress is complex to track)
         this.simulateProgress();
     }
 
     hideProcessingStatus() {
-        document.getElementById('processing-status').style.display = 'none';
-        document.getElementById('video-controls').style.display = 'block';
+        const videoProgress = document.getElementById('video-progress');
+        const processBtn = document.getElementById('process-btn');
+        
+        // Hide progress and show process button
+        videoProgress.style.display = 'none';
+        processBtn.style.display = 'block';
     }
 
     simulateProgress() {
-        const progressBar = document.getElementById('process-progress');
+        const progressBar = document.getElementById('video-progress-bar');
+        const progressPercent = document.getElementById('progress-percent');
         let progress = 0;
         
         const interval = setInterval(() => {
@@ -228,6 +221,7 @@ class VideoProcessor {
             if (progress > 95) progress = 95;
             
             progressBar.style.width = progress + '%';
+            progressPercent.textContent = Math.round(progress) + '%';
             
             if (progress >= 95) {
                 clearInterval(interval);
@@ -236,15 +230,54 @@ class VideoProcessor {
     }
 
     showResults(originalVideo, processedVideo) {
-        document.getElementById('processing-status').style.display = 'none';
-        document.getElementById('result-section').style.display = 'block';
+        // Complete the progress bar first
+        const progressBar = document.getElementById('video-progress-bar');
+        const progressPercent = document.getElementById('progress-percent');
+        progressBar.style.width = '100%';
+        progressPercent.textContent = '100%';
         
-        document.getElementById('original-video').src = originalVideo;
-        document.getElementById('processed-video').src = processedVideo;
-        document.getElementById('download-btn').href = processedVideo;
+        // Wait a moment to show 100% completion
+        setTimeout(() => {
+            // Hide processing and show results
+            document.getElementById('processing-status').style.display = 'none';
+            document.getElementById('result-section').style.display = 'block';
+            
+            document.getElementById('original-video').src = originalVideo;
+            document.getElementById('processed-video').src = processedVideo;
+            document.getElementById('download-btn').href = processedVideo;
+            
+            // Show success toast
+            this.showToast('Video processing completed successfully!', 'success');
+            
+            // Auto-refresh page after 5 seconds
+            setTimeout(() => {
+                location.reload();
+            }, 5000);
+        }, 1000);
+    }
+    
+    showToast(message, type = 'success') {
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
         
-        // Complete the progress bar
-        document.getElementById('process-progress').style.width = '100%';
+        // Add to page
+        document.body.appendChild(toast);
+        
+        // Show with animation
+        setTimeout(() => toast.classList.add('show'), 100);
+        
+        // Hide after 4 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => document.body.removeChild(toast), 300);
+        }, 4000);
     }
 }
 

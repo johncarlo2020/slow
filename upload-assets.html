@@ -391,6 +391,19 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+        
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .file-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -432,6 +445,10 @@
                             <i class="fas fa-plus me-2"></i>Add Template
                         </button>
                     </div>
+                    
+                    <!-- Template Status and Preview -->
+                    <div id="template-status" class="mt-3"></div>
+                    <div id="template-preview" class="mt-3"></div>
                 </div>
             </div>
 
@@ -461,6 +478,10 @@
                             <i class="fas fa-plus me-2"></i>Add Audio
                         </button>
                     </div>
+                    
+                    <!-- Audio Status and Preview -->
+                    <div id="audio-status" class="mt-3"></div>
+                    <div id="audio-preview" class="mt-3"></div>
                 </div>
             </div>
         </div>
@@ -538,60 +559,6 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/template-audio-uploader.js"></script>
-</body>
-</html>
-
-                        <!-- Upload Sections -->
-                        <div class="row mt-4">
-                            <!-- Template Upload -->
-                            <div class="col-md-6">
-                                <h5><i class="fas fa-image"></i> Upload New Template</h5>
-                                <div class="upload-area" id="template-upload-area">
-                                    <i class="fas fa-image fa-2x text-muted mb-3"></i>
-                                    <h6>Upload Overlay Template</h6>
-                                    <p class="text-muted">PNG or JPG image file<br>
-                                    <small>Recommended: 1920x1080 with transparency</small></p>
-                                    <input type="file" id="template-input" accept="image/*" style="display: none;">
-                                    <button class="btn btn-outline-primary" onclick="document.getElementById('template-input').click()">
-                                        Choose Template File
-                                    </button>
-                                </div>
-                                <div id="template-preview"></div>
-                                <div id="template-status"></div>
-                            </div>
-
-                            <!-- Audio Upload -->
-                            <div class="col-md-6">
-                                <h5><i class="fas fa-music"></i> Upload New Audio</h5>
-                                <div class="upload-area" id="audio-upload-area">
-                                    <i class="fas fa-music fa-2x text-muted mb-3"></i>
-                                    <h6>Upload Background Audio</h6>
-                                    <p class="text-muted">MP3, WAV, or AAC file<br>
-                                    <small>Recommended: 5-10 seconds, will loop automatically</small></p>
-                                    <input type="file" id="audio-input" accept="audio/*" style="display: none;">
-                                    <button class="btn btn-outline-primary" onclick="document.getElementById('audio-input').click()">
-                                        Choose Audio File
-                                    </button>
-                                </div>
-                                <div id="audio-preview"></div>
-                                <div id="audio-status"></div>
-                            </div>
-                        </div>
-
-                        <!-- Instructions -->
-                        <div class="alert alert-info mt-4">
-                            <h6><i class="fas fa-info-circle"></i> Usage Instructions:</h6>
-                            <ul class="mb-0">
-                                <li><strong>Templates:</strong> Overlay images that will appear on top of processed videos</li>
-                                <li><strong>Audio:</strong> Background music that will replace original video audio during slow motion</li>
-                                <li><strong>File Limits:</strong> Templates max 10MB, Audio max 20MB</li>
-                                <li><strong>Auto-replacement:</strong> New uploads automatically replace existing files</li>
-                                <li><strong>Processing:</strong> Changes take effect immediately for new video processing</li>
-                            </ul>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

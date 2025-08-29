@@ -53,9 +53,10 @@ class VideoUploader {
                 throw new Exception('File size exceeds maximum limit of 100MB');
             }
 
-            // Generate unique filename
+            // Generate filename with sortable timestamp
             $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-            $filename = uniqid('video_') . '_' . time() . '.' . $extension;
+            $timestamp = date('Ymd-His');
+            $filename = 'video_' . $timestamp . '.' . $extension;
             $destination = $this->uploadDir . $filename;
 
             // Move uploaded file

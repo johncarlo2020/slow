@@ -1,18 +1,8 @@
 <?php
-// Enable error reporting for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
-
-// Handle preflight OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
 
 class VideoProcessor {
     private $uploadsDir;
@@ -67,53 +57,6 @@ class VideoProcessor {
         }
     }
 
-    private function findOverlayTemplate() {
-        // Look for uploaded template files with different extensions
-        $templateDir = '../template/';
-        $baseFilename = 'Preview Screen V4';
-        $extensions = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
-        
-        foreach ($extensions as $ext) {
-            $path = $templateDir . $baseFilename . '.' . $ext;
-            if (file_exists($path)) {
-                error_log("Found overlay template: $path");
-                return $path;
-            }
-        }
-        
-        error_log("No overlay template found");
-        return null;
-    }
-
-    private function findBackgroundAudio() {
-        // Look for uploaded audio files with different extensions
-        $audioDir = '../audio/';
-        $baseFilename = 'background_audio';
-        $extensions = ['mp3', 'wav', 'aac', 'ogg', 'm4a'];
-        
-        error_log("Searching for background audio in: $audioDir");
-        
-        foreach ($extensions as $ext) {
-            $path = $audioDir . $baseFilename . '.' . $ext;
-            error_log("Checking for audio file: $path");
-            if (file_exists($path)) {
-                error_log("Found background audio: $path");
-                return $path;
-            }
-        }
-        
-        // Check for the original audio file as fallback
-        $fallbackPath = '../audio/PEDRO PEDRO PEDRO   #shorts.mp3';
-        error_log("Checking fallback audio: $fallbackPath");
-        if (file_exists($fallbackPath)) {
-            error_log("Using fallback audio: $fallbackPath");
-            return $fallbackPath;
-        }
-        
-        error_log("No background audio found");
-        return null;
-    }
-
     public function processVideo() {
         try {
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -149,42 +92,18 @@ class VideoProcessor {
             $outputFilename = 'slowmo_pro_' . pathinfo($inputFilename, PATHINFO_FILENAME) . '_' . time() . '.mp4';
             $outputPath = $this->outputDir . $outputFilename;
 
-            // Process the video with overlay
-            $this->createSlowMotionVideoWithOverlay($videoPath, $outputPath, $startTime, $endTime, $slowFactor, $addOverlay);
-
-            // Optimize the processed video for web delivery and faster downloads
-            $optimizedFilename = 'optimized_' . $outputFilename;
-            $optimizedPath = $this->outputDir . $optimizedFilename;
-            
-            try {
-                error_log("Starting web optimization for faster downloads");
-                $this->optimizeVideoForWeb($outputPath, $optimizedPath);
-                
-                // If optimization successful, use optimized version and remove original
-                if (file_exists($optimizedPath) && filesize($optimizedPath) > 1000) {
-                    unlink($outputPath); // Remove unoptimized version
-                    rename($optimizedPath, $outputPath); // Use optimized version
-                    error_log("Web optimization completed successfully");
-                } else {
-                    error_log("Optimization failed, keeping original");
-                }
-            } catch (Exception $e) {
-                error_log("Web optimization failed: " . $e->getMessage() . ", keeping original");
-                // Clean up failed optimization file
-                if (file_exists($optimizedPath)) {
-                    unlink($optimizedPath);
-                }
-            }
+            // Process the video with overlay (NO SLOW MOTION FOR TESTING)
+            $this->addTemplateAndAudioOnly($videoPath, $outputPath, $addOverlay);
 
             echo json_encode([
                 'success' => true,
-                'message' => 'Professional slow motion video created successfully',
+                'message' => 'Template and audio applied successfully (testing mode)',
                 'originalVideo' => $videoUrl,
                 'processedVideo' => 'processed/' . $outputFilename,
                 'settings' => [
-                    'timeRange' => '4.0 - 7.0 seconds',
-                    'slowFactor' => '4x slower',
-                    'quality' => 'Ultra smooth with overlay'
+                    'mode' => 'Template + Audio Test',
+                    'slowMotion' => 'Disabled for testing',
+                    'overlay' => $addOverlay ? 'Applied' : 'Skipped'
                 ]
             ]);
 
@@ -207,20 +126,32 @@ class VideoProcessor {
 
         error_log("Creating professional slow motion with overlay: start=$startTime, end=$endTime, factor=$slowFactor, duration=$duration");
 
-        // Path to overlay template - check for uploaded template first
-        $overlayPath = $this->findOverlayTemplate();
+        // Path to overlay template - use same logic as addTemplateAndAudioOnly
+        $templateDir = __DIR__ . '/../template/';
+        $overlayPath = null;
+        $possibleFiles = [
+            $templateDir . 'Preview Screen V4.webp',
+            $templateDir . 'Preview Screen V4.png',
+            $templateDir . 'Preview Screen V4.jpg',
+            $templateDir . 'Preview Screen V4.jpeg'
+        ];
+        
+        foreach ($possibleFiles as $file) {
+            if (file_exists($file)) {
+                $overlayPath = $file;
+                error_log("Found overlay template: " . $overlayPath);
+                break;
+            }
+        }
+        
         if (!$overlayPath) {
-            error_log("No overlay template found, proceeding without overlay");
+            error_log("Overlay template not found, proceeding without overlay");
             $addOverlay = false;
         }
 
-        // Path to background audio - check for uploaded audio
-        $backgroundAudio = $this->findBackgroundAudio();
-        error_log("Background audio result: " . ($backgroundAudio ? $backgroundAudio : "NULL"));
-
         // Ultra-smooth slow motion with professional overlay
         try {
-            $this->createUltraSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay, $backgroundAudio);
+            $this->createUltraSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay);
             return;
         } catch (Exception $e) {
             error_log("Ultra-smooth with overlay failed, trying standard: " . $e->getMessage());
@@ -228,7 +159,7 @@ class VideoProcessor {
 
         // Fallback to standard method with overlay
         try {
-            $this->createStandardSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay, $backgroundAudio);
+            $this->createStandardSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay);
             return;
         } catch (Exception $e) {
             error_log("Standard with overlay failed, trying without overlay: " . $e->getMessage());
@@ -260,14 +191,21 @@ class VideoProcessor {
         }
     }
 
-    private function createUltraSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay, $backgroundAudio = null) {
+    private function createUltraSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay) {
         error_log("Creating ultra-smooth slow motion with professional overlay");
         
-        // Use passed background audio or find one if not provided
-        if (!$backgroundAudio) {
-            $backgroundAudio = $this->findBackgroundAudio();
+        // Get background audio file
+        $audioDir = dirname(__DIR__) . '/audio/';
+        $audioFiles = glob($audioDir . '*');
+        $backgroundAudio = null;
+        
+        // Find the first audio file in the audio folder
+        foreach ($audioFiles as $file) {
+            if (is_file($file)) {
+                $backgroundAudio = $file;
+                break;
+            }
         }
-        error_log("Using background audio: " . ($backgroundAudio ? $backgroundAudio : "NULL"));
         
         // Get video frame rate
         $frameRateCmd = sprintf('"%s" -i "%s" 2>&1', $this->ffmpegPath, $inputPath);
@@ -291,21 +229,21 @@ class VideoProcessor {
         $slowMotionDuration = ($endTime - $startTime) / $slowFactor;
         $finalDuration = $originalDuration - ($endTime - $startTime) + $slowMotionDuration;
         
-        // Calculate audio loops for background audio (if used)
-        $audioLoops = ceil($finalDuration / 9.01); // 9.01 is approximate duration - will be updated for actual audio
-        
         // Complex filter with overlay scaled to fit video and background audio replacement
         if ($addOverlay && $backgroundAudio) {
+            // Calculate how many times we need to repeat the audio
+            $audioLoops = ceil($finalDuration / 9.01); // 9.01 is the duration of our audio file
+            
             $filterComplex = sprintf(
                 "[0:v]split=3[v1][v2][v3]; " .
                 "[v1]trim=start=0:end=%.2f,setpts=PTS-STARTPTS[v1out]; " .
-                "[v2]trim=start=%.2f:end=%.2f,minterpolate=fps=%.1f:mi_mode=blend:mc_mode=obmc:me_mode=bidir:scd=none,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
+                "[v2]trim=start=%.2f:end=%.2f,minterpolate=fps=%.1f:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1:scd=none,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
                 "[v3]trim=start=%.2f,setpts=PTS-STARTPTS[v3out]; " .
                 "[v1out][v2out][v3out]concat=n=3:v=1:a=0[video]; " .
-                "[1:v]scale=%d:%d[overlay_scaled]; " .
+                "[1:v]scale=%d:%d:force_original_aspect_ratio=disable[overlay_scaled]; " .
                 "[video][overlay_scaled]overlay=0:0[vout]",
                 $startTime, $startTime, $endTime, $targetFps, 1 / $slowFactor, $endTime,
-                $videoWidth, $videoHeight
+                $videoWidth, $videoHeight, $videoWidth, $videoHeight
             );
 
             // Use -stream_loop for reliable audio looping with enhanced video settings
@@ -321,7 +259,7 @@ class VideoProcessor {
                 "[v2]trim=start=%.2f:end=%.2f,minterpolate=fps=%.1f:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1:scd=none,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
                 "[v3]trim=start=%.2f,setpts=PTS-STARTPTS[v3out]; " .
                 "[v1out][v2out][v3out]concat=n=3:v=1:a=0[video]; " .
-                "[1:v]scale=%d:%d[overlay_scaled]; " .
+                "[1:v]scale=%d:%d:force_original_aspect_ratio=disable[overlay_scaled]; " .
                 "[video][overlay_scaled]overlay=0:0[vout]; " .
                 "[0:a]asplit=3[a1][a2][a3]; " .
                 "[a1]atrim=start=0:end=%.2f,asetpts=PTS-STARTPTS[a1out]; " .
@@ -329,16 +267,18 @@ class VideoProcessor {
                 "[a3]atrim=start=%.2f,asetpts=PTS-STARTPTS[a3out]; " .
                 "[a1out][a2out][a3out]concat=n=3:v=0:a=1[aout]",
                 $startTime, $startTime, $endTime, $targetFps, 1 / $slowFactor, $endTime,
-                $videoWidth, $videoHeight,
+                $videoWidth, $videoHeight, $videoWidth, $videoHeight,
                 $startTime, $startTime, $endTime, $audioFilter, $endTime
             );
 
             $cmd = sprintf(
-                '"%s" -i "%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset faster -crf 23 -pix_fmt yuv420p -profile:v main -level 3.1 -movflags +faststart -r %.1f -c:a aac -b:a 128k -avoid_negative_ts make_zero -y "%s" 2>&1',
+                '"%s" -i "%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset slower -crf 14 -pix_fmt yuv420p -profile:v high -level 4.1 -bf 3 -g 60 -keyint_min 60 -sc_threshold 0 -r %.1f -c:a aac -b:a 256k -avoid_negative_ts make_zero -y "%s" 2>&1',
                 $this->ffmpegPath, $inputPath, $overlayPath, $filterComplex, $targetFps, $outputPath
             );
         } else if ($backgroundAudio) {
             // No overlay but use background audio - mute original audio and use background audio
+            $audioLoops = ceil($finalDuration / 9.01); // Calculate audio loops needed
+            
             $filterComplex = sprintf(
                 "[0:v]split=3[v1][v2][v3]; " .
                 "[v1]trim=start=0:end=%.2f,setpts=PTS-STARTPTS[v1out]; " .
@@ -348,9 +288,9 @@ class VideoProcessor {
                 $startTime, $startTime, $endTime, $targetFps, 1 / $slowFactor, $endTime
             );
 
-            // Use -stream_loop for reliable audio looping with optimized video settings
+            // Use -stream_loop for reliable audio looping with enhanced video settings
             $cmd = sprintf(
-                '"%s" -stream_loop %d -i "%s" -i "%s" -filter_complex "%s" -map "[vout]" -map 1:a -t %.2f -c:v libx264 -preset faster -crf 23 -pix_fmt yuv420p -profile:v main -level 3.1 -movflags +faststart -r %.1f -c:a aac -b:a 128k -af "volume=0.8" -avoid_negative_ts make_zero -y "%s" 2>&1',
+                '"%s" -stream_loop %d -i "%s" -i "%s" -filter_complex "%s" -map "[vout]" -map 1:a -t %.2f -c:v libx264 -preset slower -crf 14 -pix_fmt yuv420p -profile:v high -level 4.1 -bf 3 -g 60 -keyint_min 60 -sc_threshold 0 -r %.1f -c:a aac -b:a 256k -af "volume=0.8" -avoid_negative_ts make_zero -y "%s" 2>&1',
                 $this->ffmpegPath, max(1, $audioLoops), $inputPath, $backgroundAudio, $filterComplex, $finalDuration, $targetFps, $outputPath
             );
         } else {
@@ -368,14 +308,21 @@ class VideoProcessor {
         error_log("Ultra-smooth slow motion with overlay completed successfully");
     }
 
-    private function createStandardSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay, $backgroundAudio = null) {
+    private function createStandardSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay) {
         error_log("Creating standard smooth slow motion with overlay");
         
-        // Use passed background audio or find one if not provided
-        if (!$backgroundAudio) {
-            $backgroundAudio = $this->findBackgroundAudio();
+        // Get background audio file
+        $audioDir = dirname(__DIR__) . '/audio/';
+        $audioFiles = glob($audioDir . '*');
+        $backgroundAudio = null;
+        
+        // Find the first audio file in the audio folder
+        foreach ($audioFiles as $file) {
+            if (is_file($file)) {
+                $backgroundAudio = $file;
+                break;
+            }
         }
-        error_log("Using background audio: " . ($backgroundAudio ? $backgroundAudio : "NULL"));
         
         // Calculate final video duration
         $originalDuration = $this->getVideoDuration($inputPath);
@@ -400,10 +347,10 @@ class VideoProcessor {
                 "[v2]trim=start=%.2f:end=%.2f,fps=60,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
                 "[v3]trim=start=%.2f,setpts=PTS-STARTPTS[v3out]; " .
                 "[v1out][v2out][v3out]concat=n=3:v=1:a=0[video]; " .
-                "[1:v]scale=%d:%d[overlay_scaled]; " .
+                "[1:v]scale=%d:%d:force_original_aspect_ratio=disable[overlay_scaled]; " .
                 "[video][overlay_scaled]overlay=0:0[vout]",
                 $startTime, $startTime, $endTime, 1 / $slowFactor, $endTime,
-                $videoWidth, $videoHeight
+                $videoWidth, $videoHeight, $videoWidth, $videoHeight
             );
 
             // Use -stream_loop for reliable audio looping with enhanced video settings
@@ -419,7 +366,7 @@ class VideoProcessor {
                 "[v2]trim=start=%.2f:end=%.2f,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
                 "[v3]trim=start=%.2f,setpts=PTS-STARTPTS[v3out]; " .
                 "[v1out][v2out][v3out]concat=n=3:v=1:a=0[video]; " .
-                "[1:v]scale=%d:%d[overlay_scaled]; " .
+                "[1:v]scale=%d:%d:force_original_aspect_ratio=disable[overlay_scaled]; " .
                 "[video][overlay_scaled]overlay=0:0[vout]; " .
                 "[0:a]asplit=3[a1][a2][a3]; " .
                 "[a1]atrim=start=0:end=%.2f,asetpts=PTS-STARTPTS[a1out]; " .
@@ -427,7 +374,7 @@ class VideoProcessor {
                 "[a3]atrim=start=%.2f,asetpts=PTS-STARTPTS[a3out]; " .
                 "[a1out][a2out][a3out]concat=n=3:v=0:a=1[aout]",
                 $startTime, $startTime, $endTime, 1 / $slowFactor, $endTime,
-                $videoWidth, $videoHeight,
+                $videoWidth, $videoHeight, $videoWidth, $videoHeight,
                 $startTime, $startTime, $endTime, $slowFactor, $endTime
             );
 
@@ -525,8 +472,8 @@ class VideoProcessor {
         
         error_log("Original FPS: $originalFps");
         
-        // Calculate target FPS for smooth slow motion - reduce for faster processing
-        $targetFps = min($originalFps * 1.5, 50); // Reduced from 2x to 1.5x and capped at 50fps
+        // Calculate target FPS for smooth slow motion
+        $targetFps = min($originalFps * 2, 60); // Cap at 60fps to avoid issues
         
         // Improved filter that prevents frame freezing
         $filterComplex = sprintf(
@@ -552,7 +499,7 @@ class VideoProcessor {
         );
 
         $cmd = sprintf(
-            '"%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset fast -crf 25 -pix_fmt yuv420p -movflags +faststart -r %.1f -c:a aac -b:a 128k -avoid_negative_ts make_zero -y "%s" 2>&1',
+            '"%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p -r %.1f -c:a aac -b:a 192k -avoid_negative_ts make_zero -y "%s" 2>&1',
             $this->ffmpegPath,
             $inputPath,
             $filterComplex,
@@ -600,7 +547,7 @@ class VideoProcessor {
         );
 
         $cmd = sprintf(
-            '"%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset fast -crf 25 -pix_fmt yuv420p -movflags +faststart -c:a aac -b:a 128k -avoid_negative_ts make_zero -y "%s" 2>&1',
+            '"%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset slower -crf 14 -pix_fmt yuv420p -profile:v high -level 4.1 -bf 3 -g 60 -keyint_min 60 -sc_threshold 0 -movflags +faststart -c:a aac -b:a 256k -avoid_negative_ts make_zero -y "%s" 2>&1',
             $this->ffmpegPath,
             $inputPath,
             $filterComplex,
@@ -795,11 +742,7 @@ class VideoProcessor {
         
         // Log the command and output for debugging
         error_log("Command executed: $command");
-        if (strlen($output) > 1000) {
-            error_log("Command output (truncated): " . substr($output, 0, 1000) . "...");
-        } else {
-            error_log("Command output: $output");
-        }
+        error_log("Command output: $output");
         
         // Check for common error indicators
         $errorIndicators = [
@@ -825,46 +768,175 @@ class VideoProcessor {
         
         return $output;
     }
-
-    private function optimizeVideoForWeb($inputPath, $outputPath) {
-        error_log("Optimizing video for web delivery");
+    
+    private function addTemplateAndAudioOnly($inputPath, $outputPath, $addOverlay = true) {
+        error_log("Adding template overlay and background audio only (no slow motion)");
         
-        // Check if input file is larger than 50MB, if so, apply more aggressive compression
-        $inputSize = filesize($inputPath);
-        $isLargeFile = $inputSize > (50 * 1024 * 1024); // 50MB
+        // Path to overlay template - check for multiple formats
+        $templateDir = __DIR__ . '/../template/';
+        error_log("Template directory: " . $templateDir);
+        error_log("Template directory real path: " . realpath($templateDir));
+        error_log("Template directory exists: " . (is_dir($templateDir) ? 'YES' : 'NO'));
         
-        if ($isLargeFile) {
-            error_log("Large file detected ($inputSize bytes), applying aggressive compression");
-            $crf = 28;
-            $preset = 'faster';
-            $maxrate = '1000k';
-            $bufsize = '2000k';
-        } else {
-            $crf = 25;
-            $preset = 'fast';
-            $maxrate = '1500k';
-            $bufsize = '3000k';
+        $overlayPath = null;
+        $possibleFiles = [
+            $templateDir . 'Preview Screen V4.webp',
+            $templateDir . 'Preview Screen V4.png',
+            $templateDir . 'Preview Screen V4.jpg',
+            $templateDir . 'Preview Screen V4.jpeg'
+        ];
+        
+        foreach ($possibleFiles as $file) {
+            error_log("Checking template file: " . $file);
+            if (file_exists($file)) {
+                $overlayPath = $file;
+                error_log("Found template file: " . $overlayPath);
+                break;
+            }
         }
         
-        $cmd = sprintf(
-            '"%s" -i "%s" -c:v libx264 -preset %s -crf %d -maxrate %s -bufsize %s -movflags +faststart -pix_fmt yuv420p -profile:v baseline -level 3.0 -c:a aac -b:a 96k -ar 44100 -y "%s" 2>&1',
-            $this->ffmpegPath,
-            $inputPath,
-            $preset,
-            $crf,
-            $maxrate,
-            $bufsize,
-            $outputPath
-        );
+        if (!$overlayPath) {
+            error_log("Overlay template not found, proceeding without overlay");
+            error_log("Checked files: " . implode(', ', $possibleFiles));
+            $addOverlay = false;
+        } else {
+            error_log("Using overlay template: " . $overlayPath);
+            error_log("Template file exists: " . (file_exists($overlayPath) ? 'YES' : 'NO'));
+            error_log("Template file size: " . filesize($overlayPath) . " bytes");
+        }
         
-        error_log("Web optimization command: $cmd");
-        $this->executeCommand($cmd);
+        // Get background audio file
+        $audioDir = dirname(__DIR__) . '/audio/';
+        $audioFiles = glob($audioDir . '*');
+        $backgroundAudio = null;
         
-        $outputSize = filesize($outputPath);
-        $compressionRatio = round((1 - ($outputSize / $inputSize)) * 100, 1);
-        error_log("Compression completed. Original: {$inputSize} bytes, Optimized: {$outputSize} bytes, Saved: {$compressionRatio}%");
+        foreach ($audioFiles as $file) {
+            if (is_file($file)) {
+                $backgroundAudio = $file;
+                break;
+            }
+        }
         
-        return true;
+        if (!$backgroundAudio) {
+            error_log("No background audio found in audio folder");
+        }
+        
+        // Get video duration and dimensions
+        $duration = $this->getVideoDuration($inputPath);
+        $videoInfo = $this->getVideoInfo($inputPath);
+        $videoWidth = $videoInfo['width'];
+        $videoHeight = $videoInfo['height'];
+        
+        error_log("Video info: {$videoWidth}x{$videoHeight}, duration: {$duration}s");
+        
+        // Build filter complex
+        $filterParts = [];
+        $videoInputIndex = 0;
+        $audioInputIndex = 1;
+        $overlayInputIndex = 2;
+        
+        if ($backgroundAudio) {
+            // Calculate how many times to loop the audio
+            $audioInfo = $this->getVideoInfo($backgroundAudio);
+            $audioDuration = $audioInfo['duration'];
+            $audioLoops = max(1, ceil($duration / $audioDuration));
+            
+            error_log("Audio duration: {$audioDuration}s, loops needed: {$audioLoops}");
+        }
+        
+        if ($addOverlay && file_exists($overlayPath)) {
+            // Always scale template to 1080x1920 for portrait videos
+            error_log("Forcing template overlay to 1080x1920 portrait");
+            $filterParts[] = sprintf('[%d:v]scale=1080:1920:force_original_aspect_ratio=disable[overlay_scaled]', $overlayInputIndex);
+            $filterParts[] = '[0:v][overlay_scaled]overlay=0:0[video_with_overlay]';
+        }
+        
+        $filterComplex = implode(';', $filterParts);
+        
+        // Build FFmpeg command
+        $cmd = sprintf('"%s"', $this->ffmpegPath);
+        
+        // Add video input
+        $cmd .= sprintf(' -i "%s"', $inputPath);
+        
+        // Add audio input if available
+        if ($backgroundAudio) {
+            $cmd .= sprintf(' -stream_loop %d -i "%s"', $audioLoops - 1, $backgroundAudio);
+        }
+        
+        // Add overlay input if available
+        if ($addOverlay && file_exists($overlayPath)) {
+            $cmd .= sprintf(' -i "%s"', $overlayPath);
+        }
+        
+        // Add filter complex if we have filters
+        if (!empty($filterComplex)) {
+            $cmd .= sprintf(' -filter_complex "%s"', $filterComplex);
+            error_log("Filter complex: " . $filterComplex);
+        } else {
+            error_log("No filter complex - no overlay or audio processing");
+        }
+        
+        // Select video stream
+        if ($addOverlay && file_exists($overlayPath)) {
+            $cmd .= ' -map "[video_with_overlay]"';
+        } else {
+            $cmd .= ' -map 0:v';
+        }
+        
+        // Select audio stream
+        if ($backgroundAudio) {
+            $cmd .= ' -map 1:a';
+        } else {
+            $cmd .= ' -map 0:a?'; // Use original audio if no background audio
+        }
+        
+        // Video encoding settings
+        $cmd .= ' -c:v libx264 -preset medium -crf 18';
+        $cmd .= ' -pix_fmt yuv420p';
+        
+        // Audio encoding settings
+        $cmd .= ' -c:a aac -b:a 128k -ar 44100';
+        
+        // Duration and output
+        $cmd .= sprintf(' -t %.2f', $duration);
+        $cmd .= ' -movflags +faststart';
+        $cmd .= sprintf(' -y "%s" 2>&1', $outputPath);
+        
+        error_log("Template+Audio FFmpeg command: " . $cmd);
+        
+        $output = shell_exec($cmd);
+        error_log("Template+Audio FFmpeg output: " . substr($output, 0, 1000));
+        
+        if (!file_exists($outputPath) || filesize($outputPath) < 1000) {
+            throw new Exception('Failed to create video with template and audio: ' . $output);
+        }
+        
+        error_log("Successfully created video with template and audio: " . $outputPath);
+    }
+    
+    private function getVideoInfo($filePath) {
+        $cmd = sprintf('"%s" -i "%s" 2>&1', $this->ffmpegPath, $filePath);
+        $output = shell_exec($cmd);
+        
+        $info = [];
+        
+        // Extract dimensions
+        if (preg_match('/(\d{2,4})x(\d{2,4})/', $output, $matches)) {
+            $info['width'] = intval($matches[1]);
+            $info['height'] = intval($matches[2]);
+        }
+        
+        // Extract duration
+        if (preg_match('/Duration: (\d{2}):(\d{2}):(\d{2})\.(\d{2})/', $output, $matches)) {
+            $hours = intval($matches[1]);
+            $minutes = intval($matches[2]);
+            $seconds = intval($matches[3]);
+            $centiseconds = intval($matches[4]);
+            $info['duration'] = $hours * 3600 + $minutes * 60 + $seconds + $centiseconds / 100;
+        }
+        
+        return $info;
     }
 }
 
