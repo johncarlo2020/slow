@@ -105,8 +105,10 @@ class VideoProcessor {
     }
 
     uploadFile(file) {
-        // Skip progress display for simplified interface
-        
+        // Show loader before upload
+        const loader = document.getElementById('upload-loader');
+        if (loader) loader.style.display = 'block';
+
         const formData = new FormData();
         formData.append('video', file);
 
@@ -118,16 +120,21 @@ class VideoProcessor {
                     const response = JSON.parse(xhr.responseText);
                     if (response.success) {
                         this.videoUrl = response.videoUrl;
+                        // Hide loader before showing video controls
+                        if (loader) loader.style.display = 'none';
                         this.showVideoControls(response.videoUrl);
                     } else {
+                        if (loader) loader.style.display = 'none';
                         console.error('Upload failed:', response.message);
                         alert('Upload failed: ' + response.message);
                     }
                 } else {
+                    if (loader) loader.style.display = 'none';
                     console.error('Upload failed with status:', xhr.status, xhr.responseText);
                     alert('Upload failed. Please try again.');
                 }
             } catch (error) {
+                if (loader) loader.style.display = 'none';
                 console.error('Error processing upload response:', error);
                 alert('Upload failed. Please try again.');
             }
@@ -137,6 +144,7 @@ class VideoProcessor {
         });
 
         xhr.addEventListener('error', (event) => {
+            if (loader) loader.style.display = 'none';
             console.error('Upload error event:', event);
             alert('Upload failed. Please try again.');
         });
