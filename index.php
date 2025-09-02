@@ -838,9 +838,6 @@ session_start();
                     <a href="video-gallery.html" class="nav-btn">
                         <i class="fas fa-images me-1"></i>Gallery
                     </a>
-                    <a href="slideshow.html" class="nav-btn">
-                        <i class="fas fa-play me-1"></i>Slideshow
-                    </a>
                 </div>
                 <div class="lightning-effect"></div>
             </div>
