@@ -7,95 +7,246 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        @font-face {
+            font-family: 'SamsungOne';
+            src: url('fonts/SamsungOne-400.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'SamsungOne';
+            src: url('fonts/SamsungOne-600.ttf') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'SamsungOne';
+            src: url('fonts/SamsungOne-700.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+        }
+
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: url('background/bg.webp') center/cover no-repeat fixed;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
+            font-family: 'SamsungOne', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: white;
+            position: relative;
         }
-        .download-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-            max-width: 400px;
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 27, 58, 0.7);
+            z-index: -1;
+        }
+
+        .main-container {
+            max-width: 500px;
             margin: 0 auto;
+            padding: 40px 20px;
         }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .app-title {
+            font-size: 2.5em;
+            font-weight: 300;
+            letter-spacing: 3px;
+            margin: 0;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .download-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+        }
+
         .video-preview {
             width: 100%;
-            height: 200px;
+            height: 250px;
             object-fit: cover;
-            background: #f8f9fa;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px 20px 0 0;
         }
+
         .download-content {
-            padding: 30px 25px;
+            padding: 30px;
             text-align: center;
         }
+
+        .video-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .file-info {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 25px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
         .download-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
             border: none;
-            border-radius: 50px;
-            padding: 15px 30px;
+            border-radius: 25px;
+            padding: 18px 40px;
             color: white;
             font-weight: 600;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+            font-size: 1.1em;
+            margin: 20px 0;
         }
+
         .download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.4);
             color: white;
         }
-        .download-btn:active {
-            transform: translateY(0);
-        }
-        .file-info {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
-            font-size: 0.9em;
-        }
+
         .loading-state {
-            padding: 40px 20px;
+            padding: 60px 30px;
             text-align: center;
         }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255,255,255,0.3);
-            border-top: 4px solid white;
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 30px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top: 3px solid #ff6b6b;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
         }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
         .error-state {
-            padding: 40px 20px;
+            padding: 60px 30px;
             text-align: center;
-            color: #721c24;
+            color: #ff6b6b;
         }
+
         .success-message {
-            background: #d4edda;
-            color: #155724;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 15px 0;
+            background: rgba(72, 187, 120, 0.2);
+            color: #68d391;
+            border: 1px solid rgba(72, 187, 120, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
             display: none;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 15px;
+            padding: 12px 25px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .info-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+
+        .settings-icon {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .settings-icon:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: rotate(90deg);
+        }
+
+        @media (max-width: 480px) {
+            .main-container {
+                padding: 20px 10px;
+            }
+            
+            .app-title {
+                font-size: 2em;
+                letter-spacing: 2px;
+            }
+            
+            .download-content {
+                padding: 25px 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="settings-icon">
+        <i class="fas fa-cog"></i>
+    </div>
+
+    <div class="main-container">
+        <div class="app-header">
+            <h1 class="app-title">SAMSUNG</h1>
+        </div>
+        
         <div class="download-card">
             <!-- Loading State -->
             <div id="loading-state" class="loading-state">
-                <div class="spinner"></div>
+                <div class="loader"></div>
                 <h5 style="color: white;">Loading video...</h5>
                 <p style="color: rgba(255,255,255,0.8);">Please wait</p>
             </div>
@@ -105,8 +256,8 @@
                 <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
                 <h5>Video Not Found</h5>
                 <p id="error-message">The requested video could not be found.</p>
-                <a href="video-gallery.html" class="btn btn-outline-primary">
-                    <i class="fas fa-arrow-left"></i> Back to Gallery
+                <a href="index.html" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Home
                 </a>
             </div>
 
@@ -117,16 +268,16 @@
                 </video>
                 
                 <div class="download-content">
-                    <h4 id="video-title">Slow Motion Video</h4>
+                    <h4 id="video-title" class="video-title">Slow Motion Video</h4>
                     
                     <div class="file-info">
                         <div class="row text-start">
                             <div class="col-6">
-                                <small class="text-muted">Size:</small><br>
+                                <small style="color: rgba(255,255,255,0.7);">Size:</small><br>
                                 <strong id="file-size">-</strong>
                             </div>
                             <div class="col-6">
-                                <small class="text-muted">Quality:</small><br>
+                                <small style="color: rgba(255,255,255,0.7);">Quality:</small><br>
                                 <strong>4x Slow Motion</strong>
                             </div>
                         </div>
@@ -142,18 +293,14 @@
                         <i class="fas fa-download"></i> Download Video
                     </a>
 
-                    <div class="mt-4">
-                        <small class="text-muted">
-                            <i class="fas fa-info-circle"></i>
-                            Compatible with all devices
-                        </small>
+                    <div class="info-text">
+                        <i class="fas fa-info-circle"></i>
+                        Compatible with all devices
                     </div>
 
-                    <div class="mt-3">
-                        <a href="video-gallery.html" class="btn btn-link btn-sm">
-                            <i class="fas fa-photo-video"></i> View More Videos
-                        </a>
-                    </div>
+                    <a href="index.html" class="back-btn">
+                        <i class="fas fa-arrow-left"></i> Create New Video
+                    </a>
                 </div>
             </div>
         </div>
