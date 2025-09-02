@@ -6,8 +6,66 @@ class VideoGallery {
         this.videos = [];
         this.totalPages = 0;
         
+        this.initializePusher();
         this.initializeEventListeners();
         this.loadVideos();
+    }
+
+    initializePusher() {
+        // Initialize Pusher with your actual credentials
+        this.pusher = new Pusher('60de59064bcf7cfb6d63', {
+            cluster: 'ap1'
+        });
+
+        // Subscribe to the video processing channel
+        this.channel = this.pusher.subscribe('video-processing');
+        
+        // Listen for new video processed events
+        this.channel.bind('video-processed', (data) => {
+            console.log('New video processed:', data);
+            this.handleNewVideoProcessed(data);
+        });
+        
+        console.log('Pusher initialized and listening for new videos');
+    }
+
+    handleNewVideoProcessed(data) {
+        // Show notification
+        this.showNotification('New video processed!', 'A new slow motion video is ready to view.');
+        
+        // Reload videos to show the new one
+        this.loadVideos();
+    }
+
+    showNotification(title, message) {
+        // Create a toast notification
+        const toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast show';
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="toast-header">
+                <i class="fas fa-video text-primary me-2"></i>
+                <strong class="me-auto">${title}</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                ${message}
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        document.body.appendChild(toastContainer);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (toastContainer.parentNode) {
+                toastContainer.parentNode.removeChild(toastContainer);
+            }
+        }, 5000);
     }
 
     initializeEventListeners() {

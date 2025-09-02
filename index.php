@@ -185,6 +185,35 @@ session_start();
             display: block;
         }
         
+        .nav-buttons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(138, 43, 226, 0.3);
+            color: white;
+            transform: translateY(-1px);
+            text-decoration: none;
+        }
+        
         .header-subtitle {
             font-family: 'SamsungOne', sans-serif;
             font-size: 14px;
@@ -805,6 +834,14 @@ session_start();
                     <i class="fas fa-cog"></i>
                 </div>
                 <h1 class="samsung-logo">SAMSUNG</h1>
+                <div class="nav-buttons">
+                    <a href="video-gallery.html" class="nav-btn">
+                        <i class="fas fa-images me-1"></i>Gallery
+                    </a>
+                    <a href="slideshow.html" class="nav-btn">
+                        <i class="fas fa-play me-1"></i>Slideshow
+                    </a>
+                </div>
                 <div class="lightning-effect"></div>
             </div>
             

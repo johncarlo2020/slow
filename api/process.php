@@ -4,6 +4,17 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
+// Include Pusher helper if available
+$pusherHelper = null;
+if (file_exists(__DIR__ . '/../classes/PusherHelper.php')) {
+    try {
+        require_once __DIR__ . '/../classes/PusherHelper.php';
+        $pusherHelper = new PusherHelper();
+    } catch (Exception $e) {
+        error_log('Pusher initialization failed: ' . $e->getMessage());
+    }
+}
+
 class VideoProcessor {
     private $uploadsDir;
     private $outputDir;
@@ -95,7 +106,7 @@ class VideoProcessor {
             // Process the video with overlay (NO SLOW MOTION FOR TESTING)
             $this->addTemplateAndAudioOnly($videoPath, $outputPath, $addOverlay);
 
-            echo json_encode([
+            $responseData = [
                 'success' => true,
                 'message' => 'Template and audio applied successfully (testing mode)',
                 'originalVideo' => $videoUrl,
@@ -105,7 +116,20 @@ class VideoProcessor {
                     'slowMotion' => 'Disabled for testing',
                     'overlay' => $addOverlay ? 'Applied' : 'Skipped'
                 ]
-            ]);
+            ];
+
+            // Trigger Pusher event for real-time gallery update
+            global $pusherHelper;
+            if ($pusherHelper) {
+                $pusherHelper->triggerVideoProcessed([
+                    'filename' => $outputFilename,
+                    'originalVideo' => $videoUrl,
+                    'processedVideo' => 'processed/' . $outputFilename,
+                    'timestamp' => time()
+                ]);
+            }
+
+            echo json_encode($responseData);
 
         } catch (Exception $e) {
             http_response_code(400);
