@@ -75,40 +75,66 @@ class VideoProcessor {
     }
 
     handleFileSelect(file) {
-            // Validate file type (accept H.264 formats: .mp4, .m4v, .mov)
-            const acceptedTypes = [
-                'video/mp4',
-                'video/x-m4v',
-                'video/quicktime', // .mov
-            ];
-            const acceptedExtensions = [
-                '.mp4', '.m4v', '.mov'
-            ];
-            const fileType = file.type;
-            const fileName = file.name.toLowerCase();
-            const isAcceptedType = acceptedTypes.includes(fileType);
-            const isAcceptedExt = acceptedExtensions.some(ext => fileName.endsWith(ext));
-            if (!(fileType.startsWith('video/') || isAcceptedType || isAcceptedExt)) {
-                alert('Please select a valid video file (MP4, M4V, MOV, H.264).');
-                return;
-            }
-
+        // Hide choose file section
+        const uploadSection = document.getElementById('upload-section');
+        if (uploadSection) uploadSection.style.display = 'none';
+        // Show loader
+        let loader = document.getElementById('upload-loader');
+        if (!loader) {
+            // Create loader element if it doesn't exist
+            loader = document.createElement('div');
+            loader.id = 'upload-loader';
+            loader.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                color: white;
+                font-size: 1.5em;
+            `;
+            loader.innerHTML = '<div>Uploading video, please wait...</div>';
+            document.body.appendChild(loader);
+        } else {
+            loader.style.display = 'flex';
+        }
+        // Validate file type (accept H.264 formats: .mp4, .m4v, .mov)
+        const acceptedTypes = [
+            'video/mp4',
+            'video/x-m4v',
+            'video/quicktime', // .mov
+        ];
+        const acceptedExtensions = [
+            '.mp4', '.m4v', '.mov'
+        ];
+        const fileType = file.type;
+        const fileName = file.name.toLowerCase();
+        const isAcceptedType = acceptedTypes.includes(fileType);
+        const isAcceptedExt = acceptedExtensions.some(ext => fileName.endsWith(ext));
+        if (!(fileType.startsWith('video/') || isAcceptedType || isAcceptedExt)) {
+            if (loader) loader.style.display = 'none';
+            if (uploadSection) uploadSection.style.display = 'block';
+            alert('Please select a valid video file (MP4, M4V, MOV, H.264).');
+            return;
+        }
         // Validate file size (max 100MB)
         if (file.size > 100 * 1024 * 1024) {
+            if (loader) loader.style.display = 'none';
+            if (uploadSection) uploadSection.style.display = 'block';
             alert('File size must be less than 100MB.');
             return;
         }
-
         this.currentFile = file;
         this.uploadFile(file);
         // Do NOT reset file input here
     }
 
     uploadFile(file) {
-        // Show loader before upload
-        const loader = document.getElementById('upload-loader');
-        if (loader) loader.style.display = 'block';
-
         const formData = new FormData();
         formData.append('video', file);
 
@@ -120,21 +146,29 @@ class VideoProcessor {
                     const response = JSON.parse(xhr.responseText);
                     if (response.success) {
                         this.videoUrl = response.videoUrl;
-                        // Hide loader before showing video controls
-                        if (loader) loader.style.display = 'none';
+                        this.showToast('Video uploaded and saved successfully!', 'success');
                         this.showVideoControls(response.videoUrl);
                     } else {
+                        const loader = document.getElementById('upload-loader');
+                        const uploadSection = document.getElementById('upload-section');
                         if (loader) loader.style.display = 'none';
+                        if (uploadSection) uploadSection.style.display = 'block';
                         console.error('Upload failed:', response.message);
                         alert('Upload failed: ' + response.message);
                     }
                 } else {
+                    const loader = document.getElementById('upload-loader');
+                    const uploadSection = document.getElementById('upload-section');
                     if (loader) loader.style.display = 'none';
+                    if (uploadSection) uploadSection.style.display = 'block';
                     console.error('Upload failed with status:', xhr.status, xhr.responseText);
                     alert('Upload failed. Please try again.');
                 }
             } catch (error) {
+                const loader = document.getElementById('upload-loader');
+                const uploadSection = document.getElementById('upload-section');
                 if (loader) loader.style.display = 'none';
+                if (uploadSection) uploadSection.style.display = 'block';
                 console.error('Error processing upload response:', error);
                 alert('Upload failed. Please try again.');
             }
@@ -157,10 +191,17 @@ class VideoProcessor {
         const uploadSection = document.getElementById('upload-section');
         const videoControls = document.getElementById('video-controls');
         const videoPreview = document.getElementById('video-preview');
-
-        uploadSection.style.display = 'none';
-        videoControls.style.display = 'block';
-        videoPreview.src = videoUrl;
+        const loader = document.getElementById('upload-loader');
+        if (uploadSection) uploadSection.style.display = 'none';
+        if (videoControls) videoControls.style.display = 'block';
+        if (videoPreview) {
+            videoPreview.src = videoUrl;
+            videoPreview.onloadeddata = function() {
+                if (loader) loader.style.display = 'none';
+            };
+        } else {
+            if (loader) loader.style.display = 'none';
+        }
     }
 
     processVideo() {
