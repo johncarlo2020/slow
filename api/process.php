@@ -75,12 +75,7 @@ class VideoProcessor {
             }
 
             $videoUrl = $_POST['videoUrl'] ?? '';
-            // Fixed parameters for automatic processing
-            $startTime = 4.0;  // Always process 4-7 seconds
-            $endTime = 7.0;
-            $slowFactor = 0.25; // Always 4x slower
-            $qualityMode = 'ultra'; // Always best quality
-            $addOverlay = isset($_POST['addOverlay']) && $_POST['addOverlay'] === 'true';
+            $addBackgroundMusic = isset($_POST['addBackgroundMusic']) ? $_POST['addBackgroundMusic'] === 'true' : true;
 
             if (empty($videoUrl)) {
                 throw new Exception('No video URL provided');
@@ -92,29 +87,22 @@ class VideoProcessor {
                 throw new Exception('Video file not found');
             }
 
-            // Check if video is long enough
-            $duration = $this->getVideoDuration($videoPath);
-            if ($duration < 7) {
-                throw new Exception('Video must be at least 7 seconds long for automatic processing');
-            }
-
             // Generate output filename
             $inputFilename = basename($videoPath);
-            $outputFilename = 'slowmo_pro_' . pathinfo($inputFilename, PATHINFO_FILENAME) . '_' . time() . '.mp4';
+            $outputFilename = 'processed_' . pathinfo($inputFilename, PATHINFO_FILENAME) . '_' . time() . '.mp4';
             $outputPath = $this->outputDir . $outputFilename;
 
-            // Process the video with overlay (NO SLOW MOTION FOR TESTING)
-            $this->addTemplateAndAudioOnly($videoPath, $outputPath, $addOverlay);
+            // Process the video with background music only
+            $this->addBackgroundMusicOnly($videoPath, $outputPath, $addBackgroundMusic);
 
             $responseData = [
                 'success' => true,
-                'message' => 'Template and audio applied successfully (testing mode)',
+                'message' => 'Background music added successfully',
                 'originalVideo' => $videoUrl,
                 'processedVideo' => 'processed/' . $outputFilename,
                 'settings' => [
-                    'mode' => 'Template + Audio Test',
-                    'slowMotion' => 'Disabled for testing',
-                    'overlay' => $addOverlay ? 'Applied' : 'Skipped'
+                    'mode' => 'Background Music Only',
+                    'backgroundMusic' => $addBackgroundMusic ? 'Added' : 'Skipped'
                 ]
             ];
 
@@ -140,542 +128,144 @@ class VideoProcessor {
         }
     }
 
-    private function createSlowMotionVideoWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $addOverlay = true) {
-        // Get video duration
-        $duration = $this->getVideoDuration($inputPath);
+    private function addBackgroundMusicOnly($inputPath, $outputPath, $addBackgroundMusic = true) {
+        error_log("Adding background music only (no template, no slow motion)");
         
-        if ($endTime > $duration) {
-            throw new Exception('End time exceeds video duration');
-        }
-
-        error_log("Creating professional slow motion with overlay: start=$startTime, end=$endTime, factor=$slowFactor, duration=$duration");
-
-        // Path to overlay template - use same logic as addTemplateAndAudioOnly
-        $templateDir = __DIR__ . '/../template/';
-        $overlayPath = null;
-        $possibleFiles = [
-            $templateDir . 'Preview Screen V4.webp',
-            $templateDir . 'Preview Screen V4.png',
-            $templateDir . 'Preview Screen V4.jpg',
-            $templateDir . 'Preview Screen V4.jpeg'
-        ];
-        
-        foreach ($possibleFiles as $file) {
-            if (file_exists($file)) {
-                $overlayPath = $file;
-                error_log("Found overlay template: " . $overlayPath);
-                break;
-            }
-        }
-        
-        if (!$overlayPath) {
-            error_log("Overlay template not found, proceeding without overlay");
-            $addOverlay = false;
-        }
-
-        // Ultra-smooth slow motion with professional overlay
-        try {
-            $this->createUltraSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay);
+        if (!$addBackgroundMusic) {
+            // If no background music requested, just copy the original video
+            copy($inputPath, $outputPath);
+            error_log("No background music requested, copied original video");
             return;
-        } catch (Exception $e) {
-            error_log("Ultra-smooth with overlay failed, trying standard: " . $e->getMessage());
         }
-
-        // Fallback to standard method with overlay
-        try {
-            $this->createStandardSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay);
-            return;
-        } catch (Exception $e) {
-            error_log("Standard with overlay failed, trying without overlay: " . $e->getMessage());
-        }
-
-        // Final fallback without overlay
-        $this->createStandardSmoothSlowMotion($inputPath, $outputPath, $startTime, $endTime, $slowFactor);
-    }
-
-    private function createAudioSlowFilter($slowFactor) {
-        // FFmpeg atempo filter has a range of 0.5 to 100
-        // For factors below 0.5, we need to chain multiple atempo filters
-        
-        if ($slowFactor >= 0.5) {
-            // Single atempo filter is sufficient
-            return sprintf("atempo=%.3f", $slowFactor);
-        } else {
-            // Chain multiple atempo filters for very slow motion
-            // For 0.25, we use atempo=0.5,atempo=0.5 (0.5 * 0.5 = 0.25)
-            if ($slowFactor >= 0.25) {
-                return "atempo=0.5,atempo=" . sprintf("%.3f", $slowFactor / 0.5);
-            } else if ($slowFactor >= 0.125) {
-                // For 0.125, we use three atempo filters: 0.5 * 0.5 * 0.5 = 0.125
-                return "atempo=0.5,atempo=0.5,atempo=" . sprintf("%.3f", $slowFactor / 0.25);
-            } else {
-                // For extremely slow motion, chain more filters
-                return "atempo=0.5,atempo=0.5,atempo=0.5,atempo=" . sprintf("%.3f", $slowFactor / 0.125);
-            }
-        }
-    }
-
-    private function createUltraSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay) {
-        error_log("Creating ultra-smooth slow motion with professional overlay");
         
         // Get background audio file
         $audioDir = dirname(__DIR__) . '/audio/';
-        $audioFiles = glob($audioDir . '*');
         $backgroundAudio = null;
         
-        // Find the first audio file in the audio folder
-        foreach ($audioFiles as $file) {
-            if (is_file($file)) {
-                $backgroundAudio = $file;
+        // Find audio files in the audio folder
+        $audioExtensions = ['mp3', 'wav', 'aac', 'm4a', 'flac'];
+        foreach ($audioExtensions as $ext) {
+            $audioFiles = glob($audioDir . '*.' . $ext);
+            if (!empty($audioFiles)) {
+                $backgroundAudio = $audioFiles[0]; // Use the first audio file found
                 break;
             }
         }
         
-        // Get video frame rate
-        $frameRateCmd = sprintf('"%s" -i "%s" 2>&1', $this->ffmpegPath, $inputPath);
-        $frameRateOutput = shell_exec($frameRateCmd);
-        preg_match('/(\d+(?:\.\d+)?)\s*fps/', $frameRateOutput, $matches);
-        $originalFps = isset($matches[1]) ? floatval($matches[1]) : 30;
-        
-        // For ultra-smooth slow motion, significantly increase the target FPS
-        $targetFps = min($originalFps * 4, 120); // Increase multiplier for smoother motion
-        
-        // Get video dimensions
-        preg_match('/Stream.*Video.*?(\d{3,})x(\d{3,})/', $frameRateOutput, $dimMatches);
-        $videoWidth = isset($dimMatches[1]) ? intval($dimMatches[1]) : 1920;
-        $videoHeight = isset($dimMatches[2]) ? intval($dimMatches[2]) : 1080;
-        
-        // For very slow motion (factor < 0.5), we need to chain atempo filters
-        $audioFilter = $this->createAudioSlowFilter($slowFactor);
-        
-        // Calculate final video duration
-        $originalDuration = $this->getVideoDuration($inputPath);
-        $slowMotionDuration = ($endTime - $startTime) / $slowFactor;
-        $finalDuration = $originalDuration - ($endTime - $startTime) + $slowMotionDuration;
-        
-        // Complex filter with overlay scaled to fit video and background audio replacement
-        if ($addOverlay && $backgroundAudio) {
-            // Calculate how many times we need to repeat the audio
-            $audioLoops = ceil($finalDuration / 9.01); // 9.01 is the duration of our audio file
-            
-            $filterComplex = sprintf(
-                "[0:v]split=3[v1][v2][v3]; " .
-                "[v1]trim=start=0:end=%.2f,setpts=PTS-STARTPTS[v1out]; " .
-                "[v2]trim=start=%.2f:end=%.2f,minterpolate=fps=%.1f:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1:scd=none,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
-                "[v3]trim=start=%.2f,setpts=PTS-STARTPTS[v3out]; " .
-                "[v1out][v2out][v3out]concat=n=3:v=1:a=0[video]; " .
-                "[1:v]scale=%d:%d:force_original_aspect_ratio=disable[overlay_scaled]; " .
-                "[video][overlay_scaled]overlay=0:0[vout]",
-                $startTime, $startTime, $endTime, $targetFps, 1 / $slowFactor, $endTime,
-                $videoWidth, $videoHeight, $videoWidth, $videoHeight
-            );
-
-            // Use -stream_loop for reliable audio looping with enhanced video settings
-            $cmd = sprintf(
-                '"%s" -stream_loop %d -i "%s" -i "%s" -i "%s" -filter_complex "%s" -map "[vout]" -map 2:a -t %.2f -c:v libx264 -preset slower -crf 14 -pix_fmt yuv420p -profile:v high -level 4.1 -bf 3 -g 60 -keyint_min 60 -sc_threshold 0 -r %.1f -c:a aac -b:a 256k -af "volume=0.8" -avoid_negative_ts make_zero -y "%s" 2>&1',
-                $this->ffmpegPath, max(1, $audioLoops), $inputPath, $overlayPath, $backgroundAudio, $filterComplex, $finalDuration, $targetFps, $outputPath
-            );
-        } else if ($addOverlay && !$backgroundAudio) {
-            // Without background audio - just scale overlay to fit video with enhanced slow motion
-            $filterComplex = sprintf(
-                "[0:v]split=3[v1][v2][v3]; " .
-                "[v1]trim=start=0:end=%.2f,setpts=PTS-STARTPTS[v1out]; " .
-                "[v2]trim=start=%.2f:end=%.2f,minterpolate=fps=%.1f:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1:scd=none,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
-                "[v3]trim=start=%.2f,setpts=PTS-STARTPTS[v3out]; " .
-                "[v1out][v2out][v3out]concat=n=3:v=1:a=0[video]; " .
-                "[1:v]scale=%d:%d:force_original_aspect_ratio=disable[overlay_scaled]; " .
-                "[video][overlay_scaled]overlay=0:0[vout]; " .
-                "[0:a]asplit=3[a1][a2][a3]; " .
-                "[a1]atrim=start=0:end=%.2f,asetpts=PTS-STARTPTS[a1out]; " .
-                "[a2]atrim=start=%.2f:end=%.2f,%s,asetpts=PTS-STARTPTS[a2out]; " .
-                "[a3]atrim=start=%.2f,asetpts=PTS-STARTPTS[a3out]; " .
-                "[a1out][a2out][a3out]concat=n=3:v=0:a=1[aout]",
-                $startTime, $startTime, $endTime, $targetFps, 1 / $slowFactor, $endTime,
-                $videoWidth, $videoHeight, $videoWidth, $videoHeight,
-                $startTime, $startTime, $endTime, $audioFilter, $endTime
-            );
-
-            $cmd = sprintf(
-                '"%s" -i "%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset slower -crf 14 -pix_fmt yuv420p -profile:v high -level 4.1 -bf 3 -g 60 -keyint_min 60 -sc_threshold 0 -r %.1f -c:a aac -b:a 256k -avoid_negative_ts make_zero -y "%s" 2>&1',
-                $this->ffmpegPath, $inputPath, $overlayPath, $filterComplex, $targetFps, $outputPath
-            );
-        } else if ($backgroundAudio) {
-            // No overlay but use background audio - mute original audio and use background audio
-            $audioLoops = ceil($finalDuration / 9.01); // Calculate audio loops needed
-            
-            $filterComplex = sprintf(
-                "[0:v]split=3[v1][v2][v3]; " .
-                "[v1]trim=start=0:end=%.2f,setpts=PTS-STARTPTS[v1out]; " .
-                "[v2]trim=start=%.2f:end=%.2f,minterpolate=fps=%.1f:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1:scd=none,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
-                "[v3]trim=start=%.2f,setpts=PTS-STARTPTS[v3out]; " .
-                "[v1out][v2out][v3out]concat=n=3:v=1:a=0[vout]",
-                $startTime, $startTime, $endTime, $targetFps, 1 / $slowFactor, $endTime
-            );
-
-            // Use -stream_loop for reliable audio looping with enhanced video settings
-            $cmd = sprintf(
-                '"%s" -stream_loop %d -i "%s" -i "%s" -filter_complex "%s" -map "[vout]" -map 1:a -t %.2f -c:v libx264 -preset slower -crf 14 -pix_fmt yuv420p -profile:v high -level 4.1 -bf 3 -g 60 -keyint_min 60 -sc_threshold 0 -r %.1f -c:a aac -b:a 256k -af "volume=0.8" -avoid_negative_ts make_zero -y "%s" 2>&1',
-                $this->ffmpegPath, max(1, $audioLoops), $inputPath, $backgroundAudio, $filterComplex, $finalDuration, $targetFps, $outputPath
-            );
-        } else {
-            // Without overlay and without background audio - use the existing ultra smooth method
-            return $this->createUltraSmoothSlowMotion($inputPath, $outputPath, $startTime, $endTime, $slowFactor);
-        }
-
-        error_log("Executing ultra-smooth with overlay command: $cmd");
-        $this->executeCommand($cmd);
-        
-        if (!file_exists($outputPath) || filesize($outputPath) < 1000) {
-            throw new Exception("Ultra-smooth with overlay processing failed");
+        if (!$backgroundAudio) {
+            error_log("No background audio found in audio folder, copying original video");
+            copy($inputPath, $outputPath);
+            return;
         }
         
-        error_log("Ultra-smooth slow motion with overlay completed successfully");
-    }
-
-    private function createStandardSmoothSlowMotionWithOverlay($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $overlayPath, $addOverlay) {
-        error_log("Creating standard smooth slow motion with overlay");
+        error_log("Using background audio: " . $backgroundAudio);
         
-        // Get background audio file
-        $audioDir = dirname(__DIR__) . '/audio/';
-        $audioFiles = glob($audioDir . '*');
-        $backgroundAudio = null;
-        
-        // Find the first audio file in the audio folder
-        foreach ($audioFiles as $file) {
-            if (is_file($file)) {
-                $backgroundAudio = $file;
-                break;
-            }
-        }
-        
-        // Calculate final video duration
-        $originalDuration = $this->getVideoDuration($inputPath);
-        $slowMotionDuration = ($endTime - $startTime) / $slowFactor;
-        $finalDuration = $originalDuration - ($endTime - $startTime) + $slowMotionDuration;
-        
-        // Calculate how many times we need to repeat the audio for background audio cases
-        $audioLoops = ceil($finalDuration / 9.01); // 9.01 is the duration of our audio file
-        error_log("Final video duration: $finalDuration seconds, Audio loops needed: $audioLoops");
-        
-        // Get video dimensions
-        $frameRateCmd = sprintf('"%s" -i "%s" 2>&1', $this->ffmpegPath, $inputPath);
-        $frameRateOutput = shell_exec($frameRateCmd);
-        preg_match('/Stream.*Video.*?(\d{3,})x(\d{3,})/', $frameRateOutput, $dimMatches);
-        $videoWidth = isset($dimMatches[1]) ? intval($dimMatches[1]) : 1920;
-        $videoHeight = isset($dimMatches[2]) ? intval($dimMatches[2]) : 1080;
-        
-        if ($addOverlay && $backgroundAudio) {
-            $filterComplex = sprintf(
-                "[0:v]split=3[v1][v2][v3]; " .
-                "[v1]trim=start=0:end=%.2f,setpts=PTS-STARTPTS[v1out]; " .
-                "[v2]trim=start=%.2f:end=%.2f,fps=60,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
-                "[v3]trim=start=%.2f,setpts=PTS-STARTPTS[v3out]; " .
-                "[v1out][v2out][v3out]concat=n=3:v=1:a=0[video]; " .
-                "[1:v]scale=%d:%d:force_original_aspect_ratio=disable[overlay_scaled]; " .
-                "[video][overlay_scaled]overlay=0:0[vout]",
-                $startTime, $startTime, $endTime, 1 / $slowFactor, $endTime,
-                $videoWidth, $videoHeight, $videoWidth, $videoHeight
-            );
-
-            // Use -stream_loop for reliable audio looping with enhanced video settings
-            $cmd = sprintf(
-                '"%s" -stream_loop %d -i "%s" -i "%s" -i "%s" -filter_complex "%s" -map "[vout]" -map 2:a -t %.2f -c:v libx264 -preset slower -crf 14 -pix_fmt yuv420p -profile:v high -level 4.1 -bf 3 -g 60 -keyint_min 60 -sc_threshold 0 -movflags +faststart -c:a aac -b:a 256k -af "volume=0.8" -avoid_negative_ts make_zero -y "%s" 2>&1',
-                $this->ffmpegPath, max(1, $audioLoops), $inputPath, $overlayPath, $backgroundAudio, $filterComplex, $finalDuration, $outputPath
-            );
-        } else if ($addOverlay && !$backgroundAudio) {
-            // With overlay but no background audio - use original audio with slow motion processing
-            $filterComplex = sprintf(
-                "[0:v]split=3[v1][v2][v3]; " .
-                "[v1]trim=start=0:end=%.2f,setpts=PTS-STARTPTS[v1out]; " .
-                "[v2]trim=start=%.2f:end=%.2f,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
-                "[v3]trim=start=%.2f,setpts=PTS-STARTPTS[v3out]; " .
-                "[v1out][v2out][v3out]concat=n=3:v=1:a=0[video]; " .
-                "[1:v]scale=%d:%d:force_original_aspect_ratio=disable[overlay_scaled]; " .
-                "[video][overlay_scaled]overlay=0:0[vout]; " .
-                "[0:a]asplit=3[a1][a2][a3]; " .
-                "[a1]atrim=start=0:end=%.2f,asetpts=PTS-STARTPTS[a1out]; " .
-                "[a2]atrim=start=%.2f:end=%.2f,atempo=%.3f,asetpts=PTS-STARTPTS[a2out]; " .
-                "[a3]atrim=start=%.2f,asetpts=PTS-STARTPTS[a3out]; " .
-                "[a1out][a2out][a3out]concat=n=3:v=0:a=1[aout]",
-                $startTime, $startTime, $endTime, 1 / $slowFactor, $endTime,
-                $videoWidth, $videoHeight, $videoWidth, $videoHeight,
-                $startTime, $startTime, $endTime, $slowFactor, $endTime
-            );
-
-            $cmd = sprintf(
-                '"%s" -i "%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset medium -crf 18 -pix_fmt yuv420p -movflags +faststart -c:a aac -b:a 192k -avoid_negative_ts make_zero -y "%s" 2>&1',
-                $this->ffmpegPath, $inputPath, $overlayPath, $filterComplex, $outputPath
-            );
-        } else if ($backgroundAudio) {
-            // No overlay but use background audio - mute original audio and use background audio
-            $filterComplex = sprintf(
-                "[0:v]split=3[v1][v2][v3]; " .
-                "[v1]trim=start=0:end=%.2f,setpts=PTS-STARTPTS[v1out]; " .
-                "[v2]trim=start=%.2f:end=%.2f,fps=60,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
-                "[v3]trim=start=%.2f,setpts=PTS-STARTPTS[v3out]; " .
-                "[v1out][v2out][v3out]concat=n=3:v=1:a=0[vout]",
-                $startTime, $startTime, $endTime, 1 / $slowFactor, $endTime
-            );
-
-            // Use -stream_loop for reliable audio looping with enhanced video settings
-            $cmd = sprintf(
-                '"%s" -stream_loop %d -i "%s" -i "%s" -filter_complex "%s" -map "[vout]" -map 1:a -t %.2f -c:v libx264 -preset slower -crf 14 -pix_fmt yuv420p -profile:v high -level 4.1 -bf 3 -g 60 -keyint_min 60 -sc_threshold 0 -movflags +faststart -c:a aac -b:a 256k -af "volume=0.8" -avoid_negative_ts make_zero -y "%s" 2>&1',
-                $this->ffmpegPath, max(1, $audioLoops), $inputPath, $backgroundAudio, $filterComplex, $finalDuration, $outputPath
-            );
-        } else {
-            // Without overlay - use the existing standard method
-            return $this->createStandardSmoothSlowMotion($inputPath, $outputPath, $startTime, $endTime, $slowFactor);
-        }
-
-        error_log("Executing standard smooth with overlay command: $cmd");
-        $this->executeCommand($cmd);
-        
-        if (!file_exists($outputPath) || filesize($outputPath) < 1000) {
-            throw new Exception("Standard smooth with overlay processing failed");
-        }
-        
-        error_log("Standard smooth slow motion with overlay completed successfully");
-    }
-
-    private function createSlowMotionVideo($inputPath, $outputPath, $startTime, $endTime, $slowFactor, $qualityMode = 'smooth') {
         // Get video duration
-        $duration = $this->getVideoDuration($inputPath);
+        $videoDuration = $this->getVideoDuration($inputPath);
         
-        if ($endTime > $duration) {
-            throw new Exception('End time exceeds video duration');
-        }
-
-        error_log("Creating smooth slow motion: start=$startTime, end=$endTime, factor=$slowFactor, duration=$duration, quality=$qualityMode");
-
-        // Choose processing method based on quality mode
-        switch ($qualityMode) {
-            case 'ultra':
-                try {
-                    $this->createUltraSmoothSlowMotion($inputPath, $outputPath, $startTime, $endTime, $slowFactor);
-                    return;
-                } catch (Exception $e) {
-                    error_log("Ultra-smooth method failed, trying standard: " . $e->getMessage());
-                    // Fall through to smooth mode
-                }
-                // no break - intentional fall-through
-                
-            case 'smooth':
-                try {
-                    $this->createStandardSmoothSlowMotion($inputPath, $outputPath, $startTime, $endTime, $slowFactor);
-                    return;
-                } catch (Exception $e) {
-                    error_log("Standard smooth method failed, trying simple: " . $e->getMessage());
-                    // Fall through to fast mode
-                }
-                // no break - intentional fall-through
-                
-            case 'fast':
-            default:
-                $this->createSimpleSlowMotion($inputPath, $outputPath, $startTime, $endTime, $slowFactor);
-                break;
-        }
-    }
-
-    private function createUltraSmoothSlowMotion($inputPath, $outputPath, $startTime, $endTime, $slowFactor) {
-        error_log("Attempting ultra-smooth slow motion with frame interpolation");
+        // Get audio duration
+        $audioInfo = $this->getVideoInfo($backgroundAudio);
+        $audioDuration = isset($audioInfo['duration']) ? $audioInfo['duration'] : 10; // Default to 10 seconds if can't determine
         
-        // This method uses minterpolate filter for frame interpolation
-        // Fixed to prevent frame freezing issues
+        // Calculate how many times to loop the audio to match video duration
+        $audioLoops = max(1, ceil($videoDuration / $audioDuration));
         
-        $slowDuration = $endTime - $startTime;
+        error_log("Video duration: {$videoDuration}s, Audio duration: {$audioDuration}s, Audio loops: {$audioLoops}");
         
-        // Get video frame rate
-        $frameRateCmd = sprintf(
-            '"%s" -i "%s" 2>&1',
-            $this->ffmpegPath,
-            $inputPath
-        );
-        $frameRateOutput = shell_exec($frameRateCmd);
-        preg_match('/(\d+(?:\.\d+)?)\s*fps/', $frameRateOutput, $matches);
-        $originalFps = isset($matches[1]) ? floatval($matches[1]) : 30;
-        
-        error_log("Original FPS: $originalFps");
-        
-        // Calculate target FPS for smooth slow motion
-        $targetFps = min($originalFps * 2, 60); // Cap at 60fps to avoid issues
-        
-        // Improved filter that prevents frame freezing
-        $filterComplex = sprintf(
-            "[0:v]split=3[v1][v2][v3]; " .
-            "[v1]trim=start=0:end=%.2f,setpts=PTS-STARTPTS[v1out]; " .
-            "[v2]trim=start=%.2f:end=%.2f,minterpolate=fps=%.1f:mi_mode=mci:mc_mode=aobmc:me_mode=bidir,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
-            "[v3]trim=start=%.2f,setpts=PTS-STARTPTS[v3out]; " .
-            "[v1out][v2out][v3out]concat=n=3:v=1:a=0[vout]; " .
-            "[0:a]asplit=3[a1][a2][a3]; " .
-            "[a1]atrim=start=0:end=%.2f,asetpts=PTS-STARTPTS[a1out]; " .
-            "[a2]atrim=start=%.2f:end=%.2f,atempo=%.3f,asetpts=PTS-STARTPTS[a2out]; " .
-            "[a3]atrim=start=%.2f,asetpts=PTS-STARTPTS[a3out]; " .
-            "[a1out][a2out][a3out]concat=n=3:v=0:a=1[aout]",
-            $startTime,                    // v1 end time
-            $startTime, $endTime,          // v2 start and end time
-            $targetFps,                    // interpolated frame rate
-            1 / $slowFactor,               // slow motion factor for video
-            $endTime,                      // v3 start time
-            $startTime,                    // a1 end time
-            $startTime, $endTime,          // a2 start and end time
-            $slowFactor,                   // tempo change for audio
-            $endTime                       // a3 start time
-        );
-
+        // Build FFmpeg command to replace original audio with background music
         $cmd = sprintf(
-            '"%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p -r %.1f -c:a aac -b:a 192k -avoid_negative_ts make_zero -y "%s" 2>&1',
+            '"%s" -i "%s" -stream_loop %d -i "%s" -c:v copy -map 0:v -map 1:a -t %.2f -c:a aac -b:a 128k -ar 44100 -af "volume=0.7" -shortest -y "%s" 2>&1',
             $this->ffmpegPath,
             $inputPath,
-            $filterComplex,
-            $targetFps,
+            $audioLoops - 1, // -stream_loop uses 0-based counting
+            $backgroundAudio,
+            $videoDuration,
             $outputPath
         );
-
-        error_log("Executing ultra-smooth slow motion command: $cmd");
-        $this->executeCommand($cmd);
         
-        if (!file_exists($outputPath) || filesize($outputPath) < 1000) {
-            throw new Exception("Ultra-smooth processing failed");
-        }
+        error_log("Background music FFmpeg command: " . $cmd);
         
-        error_log("Ultra-smooth slow motion completed successfully");
-    }
-
-    private function createStandardSmoothSlowMotion($inputPath, $outputPath, $startTime, $endTime, $slowFactor) {
-        error_log("Attempting standard smooth slow motion");
+        $output = shell_exec($cmd);
+        error_log("Background music FFmpeg output: " . substr($output, 0, 1000));
         
-        // Enhanced standard method with better quality settings and ultra-smooth slow motion
-        // Fixed to prevent video frame freezing and add motion smoothing
-        
-        $audioFilter = $this->createAudioSlowFilter($slowFactor);
-        
-        $filterComplex = sprintf(
-            "[0:v]split=3[v1][v2][v3]; " .
-            "[v1]trim=start=0:end=%.2f,setpts=PTS-STARTPTS[v1out]; " .
-            "[v2]trim=start=%.2f:end=%.2f,fps=60,setpts=%.2f*(PTS-STARTPTS)[v2out]; " .
-            "[v3]trim=start=%.2f,setpts=PTS-STARTPTS[v3out]; " .
-            "[v1out][v2out][v3out]concat=n=3:v=1:a=0[vout]; " .
-            "[0:a]asplit=3[a1][a2][a3]; " .
-            "[a1]atrim=start=0:end=%.2f,asetpts=PTS-STARTPTS[a1out]; " .
-            "[a2]atrim=start=%.2f:end=%.2f,%s,asetpts=PTS-STARTPTS[a2out]; " .
-            "[a3]atrim=start=%.2f,asetpts=PTS-STARTPTS[a3out]; " .
-            "[a1out][a2out][a3out]concat=n=3:v=0:a=1[aout]",
-            $startTime,           // v1 end time
-            $startTime, $endTime, // v2 start and end time
-            1 / $slowFactor,      // slow motion factor for video
-            $endTime,             // v3 start time
-            $startTime,           // a1 end time
-            $startTime, $endTime, // a2 start and end time
-            $audioFilter,         // chained atempo filters for extreme slow motion
-            $endTime              // a3 start time
-        );
-
-        $cmd = sprintf(
-            '"%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset slower -crf 14 -pix_fmt yuv420p -profile:v high -level 4.1 -bf 3 -g 60 -keyint_min 60 -sc_threshold 0 -movflags +faststart -c:a aac -b:a 256k -avoid_negative_ts make_zero -y "%s" 2>&1',
-            $this->ffmpegPath,
-            $inputPath,
-            $filterComplex,
-            $outputPath
-        );
-
-        error_log("Executing standard smooth slow motion command: $cmd");
-        $this->executeCommand($cmd);
-        
-        if (!file_exists($outputPath) || filesize($outputPath) < 1000) {
-            throw new Exception("Standard smooth processing failed");
-        }
-        
-        error_log("Standard smooth slow motion completed successfully");
-    }
-
-    private function createSimpleSlowMotion($inputPath, $outputPath, $startTime, $endTime, $slowFactor) {
-        error_log("Trying simple slow motion approach");
-        
-        // Much simpler and more reliable approach
-        // This method processes the entire video in one pass to avoid concatenation issues
-        
-        $duration = $this->getVideoDuration($inputPath);
-        
-        // Create a single filter that handles the entire video
-        // Uses select and setpts filters for better frame continuity
-        
-        $filterComplex = sprintf(
-            "[0:v]setpts=if(between(t,%.2f,%.2f),%.2f*PTS,PTS)[vout]; " .
-            "[0:a]atempo=if(between(t,%.2f,%.2f),%.3f,1.0)[aout]",
-            $startTime, $endTime, 1 / $slowFactor,  // video slow motion
-            $startTime, $endTime, $slowFactor       // audio tempo adjustment
-        );
-
-        // Alternative simpler approach if the above doesn't work
-        $simpleFilterComplex = sprintf(
-            "[0:v]trim=start=%.2f:end=%.2f,setpts=%.2f*PTS[slow]; " .
-            "[0:v]trim=start=0:end=%.2f[before]; " .
-            "[0:v]trim=start=%.2f[after]; " .
-            "[before][slow][after]concat=n=3:v=1:a=0[vout]; " .
-            "[0:a]atrim=start=%.2f:end=%.2f,atempo=%.3f[slow_audio]; " .
-            "[0:a]atrim=start=0:end=%.2f[before_audio]; " .
-            "[0:a]atrim=start=%.2f[after_audio]; " .
-            "[before_audio][slow_audio][after_audio]concat=n=3:v=0:a=1[aout]",
-            $startTime, $endTime, 1 / $slowFactor,  // slow video section
-            $startTime,                              // before section end
-            $endTime,                                // after section start
-            $startTime, $endTime, $slowFactor,       // slow audio section
-            $startTime,                              // before audio end
-            $endTime                                 // after audio start
-        );
-
-        // Try the simple approach first
-        $cmd = sprintf(
-            '"%s" -i "%s" -filter_complex "%s" -map "[vout]" -map "[aout]" -c:v libx264 -preset fast -crf 23 -pix_fmt yuv420p -avoid_negative_ts make_zero -y "%s" 2>&1',
-            $this->ffmpegPath,
-            $inputPath,
-            $simpleFilterComplex,
-            $outputPath
-        );
-
-        error_log("Executing simple slow motion command: $cmd");
-        
-        try {
-            $this->executeCommand($cmd);
-        } catch (Exception $e) {
-            error_log("Simple method failed, trying basic approach: " . $e->getMessage());
-            
-            // Even simpler fallback - just process the slow section and merge
-            $this->createBasicSlowMotion($inputPath, $outputPath, $startTime, $endTime, $slowFactor);
+        // Check for errors in output
+        if (strpos($output, 'Error') !== false || strpos($output, 'Invalid') !== false) {
+            error_log("FFmpeg error detected, trying fallback method");
+            $this->addBackgroundMusicFallback($inputPath, $outputPath, $backgroundAudio, $videoDuration);
             return;
         }
         
         if (!file_exists($outputPath) || filesize($outputPath) < 1000) {
-            throw new Exception("Simple processing failed");
+            error_log("Primary method failed, trying fallback method");
+            $this->addBackgroundMusicFallback($inputPath, $outputPath, $backgroundAudio, $videoDuration);
+            return;
         }
         
-        error_log("Simple slow motion completed successfully");
+        error_log("Successfully added background music: " . $outputPath);
     }
-
-    private function createBasicSlowMotion($inputPath, $outputPath, $startTime, $endTime, $slowFactor) {
-        error_log("Using basic slow motion approach");
+    
+    private function addBackgroundMusicFallback($inputPath, $outputPath, $backgroundAudio, $videoDuration) {
+        error_log("Using fallback method for background music");
         
-        // Most basic approach - just slow down the specified segment without audio complexity
-        $filterComplex = sprintf(
-            "[0:v]trim=start=%.2f:end=%.2f,setpts=%.2f*PTS[slow]; " .
-            "[0:v]trim=start=0:end=%.2f[before]; " .
-            "[0:v]trim=start=%.2f[after]; " .
-            "[before][slow][after]concat=n=3:v=1[vout]",
-            $startTime, $endTime, 1 / $slowFactor,
-            $startTime,
-            $endTime
-        );
-
+        // Simpler approach - mix original audio with background music
         $cmd = sprintf(
-            '"%s" -i "%s" -filter_complex "%s" -map "[vout]" -map 0:a -c:v libx264 -preset fast -crf 25 -c:a copy -avoid_negative_ts make_zero -y "%s" 2>&1',
+            '"%s" -i "%s" -i "%s" -filter_complex "[0:a][1:a]amix=inputs=2:duration=first:dropout_transition=2[audio]" -map 0:v -map "[audio]" -c:v copy -c:a aac -b:a 128k -ar 44100 -t %.2f -y "%s" 2>&1',
             $this->ffmpegPath,
             $inputPath,
-            $filterComplex,
+            $backgroundAudio,
+            $videoDuration,
             $outputPath
         );
+        
+        error_log("Fallback FFmpeg command: " . $cmd);
+        
+        $output = shell_exec($cmd);
+        error_log("Fallback FFmpeg output: " . substr($output, 0, 1000));
+        
+        if (!file_exists($outputPath) || filesize($outputPath) < 1000) {
+            // Last resort - just copy the original video
+            error_log("All methods failed, copying original video");
+            copy($inputPath, $outputPath);
+        } else {
+            error_log("Fallback method succeeded");
+        }
+    }
 
-        error_log("Executing basic slow motion command: $cmd");
-        $this->executeCommand($cmd);
+    private function getVideoInfo($filePath) {
+        error_log("Getting video info for: $filePath");
+        
+        $cmd = sprintf('"%s" -i "%s" 2>&1', $this->ffmpegPath, $filePath);
+        $output = shell_exec($cmd);
+        
+        $info = [];
+        
+        // Extract dimensions
+        if (preg_match('/(\d{2,4})x(\d{2,4})/', $output, $matches)) {
+            $info['width'] = intval($matches[1]);
+            $info['height'] = intval($matches[2]);
+            error_log("Video dimensions: {$info['width']}x{$info['height']}");
+        }
+        
+        // Extract duration
+        if (preg_match('/Duration: (\d{2}):(\d{2}):(\d{2})\.(\d{2})/', $output, $matches)) {
+            $hours = intval($matches[1]);
+            $minutes = intval($matches[2]);
+            $seconds = intval($matches[3]);
+            $centiseconds = intval($matches[4]);
+            $info['duration'] = $hours * 3600 + $minutes * 60 + $seconds + $centiseconds / 100;
+            error_log("Video duration: {$info['duration']} seconds");
+        } else {
+            // Fallback - try to get duration using the same method as getVideoDuration
+            try {
+                $info['duration'] = $this->getVideoDuration($filePath);
+                error_log("Video duration (fallback): {$info['duration']} seconds");
+            } catch (Exception $e) {
+                error_log("Could not determine duration: " . $e->getMessage());
+                $info['duration'] = 10; // Default fallback
+            }
+        }
+        
+        return $info;
     }
 
     private function getVideoDuration($videoPath) {
@@ -791,178 +381,6 @@ class VideoProcessor {
         }
         
         return $output;
-    }
-    
-    private function addTemplateAndAudioOnly($inputPath, $outputPath, $addOverlay = true) {
-        error_log("Adding template overlay and background audio only (no slow motion)");
-        
-        // Path to overlay template - check for multiple formats
-        $templateDir = __DIR__ . '/../template/';
-        error_log("Template directory: " . $templateDir);
-        error_log("Template directory real path: " . realpath($templateDir));
-        error_log("Template directory exists: " . (is_dir($templateDir) ? 'YES' : 'NO'));
-        
-        $overlayPath = null;
-        $possibleFiles = [
-            $templateDir . 'Preview Screen V4.webp',
-            $templateDir . 'Preview Screen V4.png',
-            $templateDir . 'Preview Screen V4.jpg',
-            $templateDir . 'Preview Screen V4.jpeg'
-        ];
-        
-        foreach ($possibleFiles as $file) {
-            error_log("Checking template file: " . $file);
-            if (file_exists($file)) {
-                $overlayPath = $file;
-                error_log("Found template file: " . $overlayPath);
-                break;
-            }
-        }
-        
-        if (!$overlayPath) {
-            error_log("Overlay template not found, proceeding without overlay");
-            error_log("Checked files: " . implode(', ', $possibleFiles));
-            $addOverlay = false;
-        } else {
-            error_log("Using overlay template: " . $overlayPath);
-            error_log("Template file exists: " . (file_exists($overlayPath) ? 'YES' : 'NO'));
-            error_log("Template file size: " . filesize($overlayPath) . " bytes");
-        }
-        
-        // Get background audio file
-        $audioDir = dirname(__DIR__) . '/audio/';
-        $audioFiles = glob($audioDir . '*');
-        $backgroundAudio = null;
-        
-        foreach ($audioFiles as $file) {
-            if (is_file($file)) {
-                $backgroundAudio = $file;
-                break;
-            }
-        }
-        
-        if (!$backgroundAudio) {
-            error_log("No background audio found in audio folder");
-        }
-        
-        // Get video duration and dimensions
-        $duration = $this->getVideoDuration($inputPath);
-        $videoInfo = $this->getVideoInfo($inputPath);
-        $videoWidth = $videoInfo['width'];
-        $videoHeight = $videoInfo['height'];
-        
-        error_log("Video info: {$videoWidth}x{$videoHeight}, duration: {$duration}s");
-        
-        // Build filter complex
-        $filterParts = [];
-        $videoInputIndex = 0;
-        $audioInputIndex = 1;
-        $overlayInputIndex = 2;
-        
-        if ($backgroundAudio) {
-            // Calculate how many times to loop the audio
-            $audioInfo = $this->getVideoInfo($backgroundAudio);
-            $audioDuration = $audioInfo['duration'];
-            $audioLoops = max(1, ceil($duration / $audioDuration));
-            
-            error_log("Audio duration: {$audioDuration}s, loops needed: {$audioLoops}");
-        }
-        
-        if ($addOverlay && file_exists($overlayPath)) {
-                // Stretch both video and template to fill 1080x1920 portrait frame (may distort)
-                error_log("Stretching video and template to fill 1080x1920 portrait frame (may distort)");
-                $filterParts[] = '[0:v]scale=1080:1920:force_original_aspect_ratio=disable[video_fitted]';
-                $filterParts[] = sprintf('[%d:v]scale=1080:1920:force_original_aspect_ratio=disable[overlay_scaled]', $overlayInputIndex);
-                $filterParts[] = '[video_fitted][overlay_scaled]overlay=0:0[video_with_overlay]';
-        }
-        
-        $filterComplex = implode(';', $filterParts);
-        
-        // Build FFmpeg command
-        $cmd = sprintf('"%s"', $this->ffmpegPath);
-        
-        // Add video input
-        $cmd .= sprintf(' -i "%s"', $inputPath);
-        
-        // Add audio input if available
-        if ($backgroundAudio) {
-            $cmd .= sprintf(' -stream_loop %d -i "%s"', $audioLoops - 1, $backgroundAudio);
-        }
-        
-        // Add overlay input if available
-        if ($addOverlay && file_exists($overlayPath)) {
-            $cmd .= sprintf(' -i "%s"', $overlayPath);
-        }
-        
-        // Add filter complex if we have filters
-        if (!empty($filterComplex)) {
-            $cmd .= sprintf(' -filter_complex "%s"', $filterComplex);
-            error_log("Filter complex: " . $filterComplex);
-        } else {
-            error_log("No filter complex - no overlay or audio processing");
-        }
-        
-        // Select video stream
-        if ($addOverlay && file_exists($overlayPath)) {
-            $cmd .= ' -map "[video_with_overlay]"';
-        } else {
-            $cmd .= ' -map 0:v';
-        }
-        
-        // Select audio stream
-        if ($backgroundAudio) {
-            $cmd .= ' -map 1:a';
-        } else {
-            $cmd .= ' -map 0:a?'; // Use original audio if no background audio
-        }
-        
-                    // Always scale and pad video to fit template size (1080x1920)
-                    error_log("Scaling and padding video to fit template size 1080x1920");
-                    $filterParts[] = '[0:v]scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1[video_fitted]';
-                    $filterParts[] = sprintf('[%d:v]scale=1080:1920:force_original_aspect_ratio=disable[overlay_scaled]', $overlayInputIndex);
-                    $filterParts[] = '[video_fitted][overlay_scaled]overlay=0:0[video_with_overlay]';
-        // Audio encoding settings
-        $cmd .= ' -c:a aac -b:a 128k -ar 44100';
-        
-        // Duration and output
-        $cmd .= sprintf(' -t %.2f', $duration);
-        $cmd .= ' -movflags +faststart';
-        $cmd .= sprintf(' -y "%s" 2>&1', $outputPath);
-        
-        error_log("Template+Audio FFmpeg command: " . $cmd);
-        
-        $output = shell_exec($cmd);
-        error_log("Template+Audio FFmpeg output: " . substr($output, 0, 1000));
-        
-        if (!file_exists($outputPath) || filesize($outputPath) < 1000) {
-            throw new Exception('Failed to create video with template and audio: ' . $output);
-        }
-        
-        error_log("Successfully created video with template and audio: " . $outputPath);
-    }
-    
-    private function getVideoInfo($filePath) {
-        $cmd = sprintf('"%s" -i "%s" 2>&1', $this->ffmpegPath, $filePath);
-        $output = shell_exec($cmd);
-        
-        $info = [];
-        
-        // Extract dimensions
-        if (preg_match('/(\d{2,4})x(\d{2,4})/', $output, $matches)) {
-            $info['width'] = intval($matches[1]);
-            $info['height'] = intval($matches[2]);
-        }
-        
-        // Extract duration
-        if (preg_match('/Duration: (\d{2}):(\d{2}):(\d{2})\.(\d{2})/', $output, $matches)) {
-            $hours = intval($matches[1]);
-            $minutes = intval($matches[2]);
-            $seconds = intval($matches[3]);
-            $centiseconds = intval($matches[4]);
-            $info['duration'] = $hours * 3600 + $minutes * 60 + $seconds + $centiseconds / 100;
-        }
-        
-        return $info;
     }
 }
 
