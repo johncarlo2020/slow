@@ -5,7 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connection Test</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background: #C82026;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+        }
         .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; }
         .success { background-color: #d4edda; color: #155724; }
         .error { background-color: #f8d7da; color: #721c24; }
@@ -13,8 +27,13 @@
     </style>
 </head>
 <body>
-    <h1>Video Upload System - Connection Test</h1>
-    <div id="test-results"></div>
+    <div class="container">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="template/eco logo@3x.png" alt="Logo" style="height: 40px; margin-bottom: 10px;">
+        </div>
+        <h1>Video Upload System - Connection Test</h1>
+        <div id="test-results"></div>
+    </div>
     
     <script>
         const results = document.getElementById('test-results');

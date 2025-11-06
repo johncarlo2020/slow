@@ -6,7 +6,7 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Samsung Video Processor</title>
+    <title>Video Processor</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -39,10 +39,7 @@ session_start();
         
         body {
             font-family: 'SamsungOne', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: url('background/bg.webp') center center;
-            background-size: cover;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
+            background: #C82026;
             min-height: 100vh;
             overflow: hidden;
             position: relative;
@@ -55,7 +52,7 @@ session_start();
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(26, 26, 46, 0.85) 0%, rgba(22, 33, 62, 0.9) 50%, rgba(15, 52, 96, 0.8) 100%);
+            background: linear-gradient(135deg, rgba(200, 32, 38, 0.9) 0%, rgba(180, 28, 34, 0.95) 50%, rgba(160, 24, 30, 0.9) 100%);
             z-index: 0;
             pointer-events: none;
         }
@@ -74,7 +71,7 @@ session_start();
         
         .particle {
             position: absolute;
-            background: radial-gradient(circle, rgba(138, 43, 226, 0.8) 0%, rgba(30, 144, 255, 0.4) 100%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(255, 200, 200, 0.3) 100%);
             border-radius: 50%;
             animation: float 6s ease-in-out infinite;
         }
@@ -100,7 +97,7 @@ session_start();
             position: absolute;
             width: 2px;
             height: 200px;
-            background: linear-gradient(0deg, transparent 0%, #8a2be2 50%, #1e90ff 100%);
+            background: linear-gradient(0deg, transparent 0%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 200, 200, 0.8) 100%);
             left: 50%;
             top: 20%;
             transform: translateX(-50%) rotate(25deg);
@@ -135,11 +132,11 @@ session_start();
         }
         
         .samsung-card {
-            background: rgba(20, 20, 30, 0.95);
+            background: rgba(40, 40, 45, 0.95);
             backdrop-filter: blur(20px);
             border-radius: 28px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             max-width: 500px;
             width: 100%;
             overflow: hidden;
@@ -170,7 +167,31 @@ session_start();
         }
         
         .settings-icon:hover {
-            color: #8a2be2;
+            color: #C82026;
+        }
+        
+        .eco-shop-badge {
+            background: linear-gradient(135deg, #C82026 0%, #E63946 100%);
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(200, 32, 38, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .eco-shop-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(200, 32, 38, 0.4);
+        }
+        
+        .eco-shop-text {
+            color: white;
+            font-family: 'SamsungOne', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            vertical-align: middle;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
         
         .samsung-logo {
@@ -180,38 +201,9 @@ session_start();
             color: #ffffff;
             letter-spacing: 4px;
             margin: 0 auto 15px;
-            text-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
+            text-shadow: 0 0 20px rgba(200, 32, 38, 0.5);
             text-align: center;
             display: block;
-        }
-        
-        .nav-buttons {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-            z-index: 10;
-        }
-        
-        .nav-btn {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            text-decoration: none;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .nav-btn:hover {
-            background: rgba(138, 43, 226, 0.3);
-            color: white;
-            transform: translateY(-1px);
-            text-decoration: none;
         }
         
         .header-subtitle {
@@ -227,26 +219,28 @@ session_start();
         }
         
         .upload-header-section {
-            background: rgba(255, 255, 255, 0.95);
+            background: linear-gradient(135deg, #C82026 0%, #E63946 100%);
             padding: 20px 30px;
             border-radius: 20px 20px 0 0;
             margin: 0 30px;
+            color: white;
         }
         
         .upload-section-title {
             font-family: 'SamsungOne', sans-serif;
             font-size: 24px;
             font-weight: 600;
-            color: #333;
+            color: white;
             text-align: center;
             margin: 0;
         }
         
         #upload-section {
-            background: rgba(20, 20, 30, 0.9);
+            background: rgba(40, 40, 45, 0.9);
             border-radius: 0 0 20px 20px;
             margin: 0 30px;
             padding: 30px;
+            border: 1px solid rgba(200, 32, 38, 0.3);
         }
         
         .upload-title {
@@ -274,13 +268,13 @@ session_start();
         }
         
         .upload-area:hover {
-            border-color: rgba(138, 43, 226, 0.8);
-            background: rgba(138, 43, 226, 0.05);
+            border-color: rgba(200, 32, 38, 0.8);
+            background: rgba(200, 32, 38, 0.05);
         }
         
         .upload-area.dragover {
-            border-color: rgba(30, 144, 255, 0.8);
-            background: rgba(30, 144, 255, 0.05);
+            border-color: rgba(230, 57, 70, 0.8);
+            background: rgba(230, 57, 70, 0.05);
             transform: scale(1.02);
         }
         
@@ -303,11 +297,11 @@ session_start();
         }
         
         .upload-area:hover .upload-icon {
-            border-color: rgba(138, 43, 226, 0.8);
+            border-color: rgba(200, 32, 38, 0.8);
         }
         
         .upload-area:hover .upload-icon i {
-            color: rgba(138, 43, 226, 0.9);
+            color: rgba(200, 32, 38, 0.9);
         }
         
         .upload-text {
@@ -360,7 +354,7 @@ session_start();
         }
         
         .progress-bar {
-            background: linear-gradient(90deg, #8a2be2 0%, #1e90ff 100%);
+            background: linear-gradient(90deg, #C82026 0%, #E63946 100%);
             transition: width 0.3s ease;
         }
         
@@ -378,25 +372,25 @@ session_start();
             margin-top: 30px;
             padding: 30px;
             text-align: center;
-            background: rgba(20, 20, 30, 0.8);
+            background: rgba(40, 40, 45, 0.8);
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(200, 32, 38, 0.2);
         }
         
         .result-section {
             display: none;
             margin-top: 30px;
             padding: 30px;
-            background: rgba(20, 20, 30, 0.8);
+            background: rgba(40, 40, 45, 0.8);
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(200, 32, 38, 0.2);
         }
         
         .processing-spinner {
             width: 50px;
             height: 50px;
-            border: 4px solid rgba(138, 43, 226, 0.2);
-            border-top: 4px solid #8a2be2;
+            border: 4px solid rgba(200, 32, 38, 0.2);
+            border-top: 4px solid #C82026;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
@@ -434,10 +428,10 @@ session_start();
         }
         
         .video-card {
-            background: rgba(20, 20, 30, 0.8);
+            background: rgba(40, 40, 45, 0.8);
             border-radius: 20px;
             padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(200, 32, 38, 0.2);
             margin-bottom: 20px;
         }
         
@@ -460,8 +454,8 @@ session_start();
         }
         
         .settings-info {
-            background: rgba(138, 43, 226, 0.1);
-            border: 1px solid rgba(138, 43, 226, 0.3);
+            background: rgba(200, 32, 38, 0.1);
+            border: 1px solid rgba(200, 32, 38, 0.3);
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
@@ -496,7 +490,7 @@ session_start();
         .detail-value {
             font-family: 'SamsungOne', sans-serif;
             font-weight: 700;
-            color: #8a2be2;
+            color: #C82026;
             font-size: 16px;
         }
         
@@ -507,7 +501,7 @@ session_start();
         
         .process-btn {
             width: 100%;
-            background: linear-gradient(135deg, #8a2be2 0%, #1e90ff 100%);
+            background: linear-gradient(135deg, #C82026 0%, #E63946 100%);
             border: none;
             border-radius: 16px;
             padding: 20px;
@@ -517,13 +511,13 @@ session_start();
             color: white;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(138, 43, 226, 0.3);
+            box-shadow: 0 8px 25px rgba(200, 32, 38, 0.3);
             margin-top: 25px;
         }
         
         .process-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(138, 43, 226, 0.4);
+            box-shadow: 0 12px 35px rgba(200, 32, 38, 0.4);
         }
         
         .btn-subtitle {
@@ -559,7 +553,7 @@ session_start();
         .progress-percent {
             font-family: 'SamsungOne', sans-serif;
             font-size: 14px;
-            color: #8a2be2;
+            color: #C82026;
             font-weight: 700;
         }
         
@@ -586,7 +580,7 @@ session_start();
         }
         
         .btn-download {
-            background: linear-gradient(135deg, #8a2be2 0%, #1e90ff 100%);
+            background: linear-gradient(135deg, #C82026 0%, #E63946 100%);
             border: none;
             border-radius: 16px;
             padding: 15px 25px;
@@ -598,13 +592,13 @@ session_start();
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(138, 43, 226, 0.3);
+            box-shadow: 0 8px 25px rgba(200, 32, 38, 0.3);
             display: inline-block;
         }
         
         .btn-download:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(138, 43, 226, 0.4);
+            box-shadow: 0 12px 35px rgba(200, 32, 38, 0.4);
             color: white;
             text-decoration: none;
         }
@@ -833,11 +827,11 @@ session_start();
                 <div class="settings-icon">
                     <i class="fas fa-cog"></i>
                 </div>
-                <h1 class="samsung-logo">SAMSUNG</h1>
-                <div class="nav-buttons">
-                    <a href="video-gallery.html" class="nav-btn">
-                        <i class="fas fa-images me-1"></i>Gallery
-                    </a>
+                <div style="text-align: center;">
+                    <div class="eco-shop-badge">
+                        <img src="template/eco logo@3x.png" alt="Logo" style="height: 40px; margin-right: 8px; vertical-align: middle;">
+                       
+                    </div>
                 </div>
                 <div class="lightning-effect"></div>
             </div>

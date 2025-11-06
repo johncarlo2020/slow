@@ -6,6 +6,21 @@
     <title>Video Processor - Installation Guide</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        body {
+            background: #C82026;
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 50px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+        }
         .status-ok { color: green; }
         .status-error { color: red; }
         .status-warning { color: orange; }
@@ -13,6 +28,9 @@
 </head>
 <body>
     <div class="container mt-5">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="template/eco logo@3x.png" alt="Logo" style="height: 50px; margin-bottom: 15px;">
+        </div>
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="card">

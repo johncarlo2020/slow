@@ -2,6 +2,41 @@
 // Debug FFmpeg processing
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FFmpeg Debug</title>
+    <style>
+        body {
+            background: #C82026;
+            color: white;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+        }
+        pre {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="template/eco logo@3x.png" alt="Logo" style="height: 40px; margin-bottom: 10px;">
+        </div>
+<?php
 
 $inputFile = '/var/www/slow/uploads/video_68ae8d07c48e3_1756269831.mp4';
 
@@ -42,3 +77,6 @@ echo "<h4>4. Permission Check</h4>";
 echo "<p>Processed directory permissions: " . substr(sprintf('%o', fileperms('/var/www/slow/processed')), -4) . "</p>";
 echo "<p>Web server user: " . exec('whoami') . "</p>";
 ?>
+    </div>
+</body>
+</html>
