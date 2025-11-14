@@ -9,7 +9,7 @@ ini_set('display_errors', 1);
     <title>FFmpeg Debug</title>
     <style>
         body {
-            background: #C82026;
+            background: #a512ff;
             color: white;
             padding: 20px;
             font-family: Arial, sans-serif;

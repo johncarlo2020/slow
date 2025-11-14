@@ -39,7 +39,7 @@ session_start();
         
         body {
             font-family: 'SamsungOne', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #C82026;
+            background: #a512ff;
             min-height: 100vh;
             overflow: hidden;
             position: relative;
@@ -52,7 +52,7 @@ session_start();
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(200, 32, 38, 0.9) 0%, rgba(180, 28, 34, 0.95) 50%, rgba(160, 24, 30, 0.9) 100%);
+            background: linear-gradient(135deg, rgba(165, 18, 255, 0.9) 0%, rgba(145, 15, 225, 0.95) 50%, rgba(125, 12, 195, 0.9) 100%);
             z-index: 0;
             pointer-events: none;
         }
@@ -71,7 +71,7 @@ session_start();
         
         .particle {
             position: absolute;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(255, 200, 200, 0.3) 100%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, rgba(200, 150, 255, 0.3) 100%);
             border-radius: 50%;
             animation: float 6s ease-in-out infinite;
         }
@@ -97,7 +97,7 @@ session_start();
             position: absolute;
             width: 2px;
             height: 200px;
-            background: linear-gradient(0deg, transparent 0%, rgba(255, 255, 255, 0.5) 50%, rgba(255, 200, 200, 0.8) 100%);
+            background: linear-gradient(0deg, transparent 0%, rgba(255, 255, 255, 0.5) 50%, rgba(200, 150, 255, 0.8) 100%);
             left: 50%;
             top: 20%;
             transform: translateX(-50%) rotate(25deg);
@@ -167,22 +167,22 @@ session_start();
         }
         
         .settings-icon:hover {
-            color: #C82026;
+            color: #a512ff;
         }
         
         .eco-shop-badge {
-            background: linear-gradient(135deg, #C82026 0%, #E63946 100%);
+            background: linear-gradient(135deg, #a512ff 0%, #c850ff 100%);
             padding: 8px 16px;
             border-radius: 8px;
             display: inline-block;
             margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(200, 32, 38, 0.3);
+            box-shadow: 0 4px 15px rgba(165, 18, 255, 0.3);
             transition: all 0.3s ease;
         }
         
         .eco-shop-badge:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(200, 32, 38, 0.4);
+            box-shadow: 0 6px 20px rgba(165, 18, 255, 0.4);
         }
         
         .eco-shop-text {
@@ -201,7 +201,7 @@ session_start();
             color: #ffffff;
             letter-spacing: 4px;
             margin: 0 auto 15px;
-            text-shadow: 0 0 20px rgba(200, 32, 38, 0.5);
+            text-shadow: 0 0 20px rgba(165, 18, 255, 0.5);
             text-align: center;
             display: block;
         }
@@ -219,7 +219,7 @@ session_start();
         }
         
         .upload-header-section {
-            background: linear-gradient(135deg, #C82026 0%, #E63946 100%);
+            background: linear-gradient(135deg, #a512ff 0%, #c850ff 100%);
             padding: 20px 30px;
             border-radius: 20px 20px 0 0;
             margin: 0 30px;
@@ -240,7 +240,7 @@ session_start();
             border-radius: 0 0 20px 20px;
             margin: 0 30px;
             padding: 30px;
-            border: 1px solid rgba(200, 32, 38, 0.3);
+            border: 1px solid rgba(165, 18, 255, 0.3);
         }
         
         .upload-title {
@@ -268,13 +268,13 @@ session_start();
         }
         
         .upload-area:hover {
-            border-color: rgba(200, 32, 38, 0.8);
-            background: rgba(200, 32, 38, 0.05);
+            border-color: rgba(165, 18, 255, 0.8);
+            background: rgba(165, 18, 255, 0.05);
         }
         
         .upload-area.dragover {
-            border-color: rgba(230, 57, 70, 0.8);
-            background: rgba(230, 57, 70, 0.05);
+            border-color: rgba(200, 80, 255, 0.8);
+            background: rgba(200, 80, 255, 0.05);
             transform: scale(1.02);
         }
         
@@ -297,11 +297,11 @@ session_start();
         }
         
         .upload-area:hover .upload-icon {
-            border-color: rgba(200, 32, 38, 0.8);
+            border-color: rgba(165, 18, 255, 0.8);
         }
         
         .upload-area:hover .upload-icon i {
-            color: rgba(200, 32, 38, 0.9);
+            color: rgba(165, 18, 255, 0.9);
         }
         
         .upload-text {
@@ -354,7 +354,7 @@ session_start();
         }
         
         .progress-bar {
-            background: linear-gradient(90deg, #C82026 0%, #E63946 100%);
+            background: linear-gradient(90deg, #a512ff 0%, #c850ff 100%);
             transition: width 0.3s ease;
         }
         
@@ -374,7 +374,7 @@ session_start();
             text-align: center;
             background: rgba(40, 40, 45, 0.8);
             border-radius: 20px;
-            border: 1px solid rgba(200, 32, 38, 0.2);
+            border: 1px solid rgba(165, 18, 255, 0.2);
         }
         
         .result-section {
@@ -383,14 +383,14 @@ session_start();
             padding: 30px;
             background: rgba(40, 40, 45, 0.8);
             border-radius: 20px;
-            border: 1px solid rgba(200, 32, 38, 0.2);
+            border: 1px solid rgba(165, 18, 255, 0.2);
         }
         
         .processing-spinner {
             width: 50px;
             height: 50px;
-            border: 4px solid rgba(200, 32, 38, 0.2);
-            border-top: 4px solid #C82026;
+            border: 4px solid rgba(165, 18, 255, 0.2);
+            border-top: 4px solid #a512ff;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
@@ -431,7 +431,7 @@ session_start();
             background: rgba(40, 40, 45, 0.8);
             border-radius: 20px;
             padding: 25px;
-            border: 1px solid rgba(200, 32, 38, 0.2);
+            border: 1px solid rgba(165, 18, 255, 0.2);
             margin-bottom: 20px;
         }
         
@@ -454,8 +454,8 @@ session_start();
         }
         
         .settings-info {
-            background: rgba(200, 32, 38, 0.1);
-            border: 1px solid rgba(200, 32, 38, 0.3);
+            background: rgba(165, 18, 255, 0.1);
+            border: 1px solid rgba(165, 18, 255, 0.3);
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
@@ -490,7 +490,7 @@ session_start();
         .detail-value {
             font-family: 'SamsungOne', sans-serif;
             font-weight: 700;
-            color: #C82026;
+            color: #a512ff;
             font-size: 16px;
         }
         
@@ -501,7 +501,7 @@ session_start();
         
         .process-btn {
             width: 100%;
-            background: linear-gradient(135deg, #C82026 0%, #E63946 100%);
+            background: linear-gradient(135deg, #a512ff 0%, #c850ff 100%);
             border: none;
             border-radius: 16px;
             padding: 20px;
@@ -511,13 +511,13 @@ session_start();
             color: white;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(200, 32, 38, 0.3);
+            box-shadow: 0 8px 25px rgba(165, 18, 255, 0.3);
             margin-top: 25px;
         }
         
         .process-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(200, 32, 38, 0.4);
+            box-shadow: 0 12px 35px rgba(165, 18, 255, 0.4);
         }
         
         .btn-subtitle {
@@ -553,7 +553,7 @@ session_start();
         .progress-percent {
             font-family: 'SamsungOne', sans-serif;
             font-size: 14px;
-            color: #C82026;
+            color: #a512ff;
             font-weight: 700;
         }
         
@@ -580,7 +580,7 @@ session_start();
         }
         
         .btn-download {
-            background: linear-gradient(135deg, #C82026 0%, #E63946 100%);
+            background: linear-gradient(135deg, #a512ff 0%, #c850ff 100%);
             border: none;
             border-radius: 16px;
             padding: 15px 25px;
@@ -592,13 +592,13 @@ session_start();
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(200, 32, 38, 0.3);
+            box-shadow: 0 8px 25px rgba(165, 18, 255, 0.3);
             display: inline-block;
         }
         
         .btn-download:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(200, 32, 38, 0.4);
+            box-shadow: 0 12px 35px rgba(165, 18, 255, 0.4);
             color: white;
             text-decoration: none;
         }

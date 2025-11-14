@@ -11,7 +11,7 @@ header('Content-Type: text/html; charset=UTF-8');
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background: #C82026;
+            background: #a512ff;
             color: white;
         }
         .container {
