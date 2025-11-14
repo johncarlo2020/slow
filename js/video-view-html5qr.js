@@ -8,27 +8,22 @@ class VideoView {
         this.loadVideo();
     }
 
-    loadVideo() {
-        console.log('Loading video...');
-        // Get video filename from URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        this.videoFilename = urlParams.get('video');
-
-        if (!this.videoFilename) {
-            this.showError('No video specified in URL');
-            return;
-        }
-
-        this.fetchVideoInfo();
-    }
-
-    async fetchVideoInfo() {
+    async loadVideo() {
         try {
-            console.log('Fetching video info for:', this.videoFilename);
+            console.log('Loading video...');
+            // Get video filename from URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            this.videoFilename = urlParams.get('video');
+
+            if (!this.videoFilename) {
+                this.showError('No video specified in URL');
+                return;
+            }
+
             const response = await fetch(`api/get-video-info.php?filename=${encodeURIComponent(this.videoFilename)}`);
             const data = await response.json();
 
-            if (data.success) {
+            if (data.success && data.video) {
                 console.log('Video info loaded:', data.video);
                 this.videoData = data.video;
                 this.downloadUrl = data.downloadUrl;
@@ -88,6 +83,9 @@ class VideoView {
             };
         }
 
+        // Hide loading state
+        document.getElementById('loading-state').style.display = 'none';
+        
         // Show main content
         mainContent.style.display = 'flex';
     }
@@ -266,6 +264,9 @@ class VideoView {
         if (mainContent) {
             mainContent.style.display = 'none';
         }
+
+        // Hide loading state
+        document.getElementById('loading-state').style.display = 'none';
     }
 }
 

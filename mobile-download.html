@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Download Video - Slow Motion Creator</title>
+    <title>Download Video</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -34,22 +34,6 @@
             padding: 40px 20px;
         }
 
-        .app-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .app-title {
-            font-size: 2.5em;
-            font-weight: 300;
-            letter-spacing: 3px;
-            margin: 0;
-            background: linear-gradient(45deg, #fff, #f0f0f0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
         .download-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
@@ -62,30 +46,16 @@
 
         .video-preview {
             width: 100%;
-            height: 250px;
-            object-fit: cover;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px 20px 0 0;
+            height: auto;
+            max-height: 60vh;
+            object-fit: contain;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 25px 25px 0 0;
         }
 
         .download-content {
             padding: 30px;
             text-align: center;
-        }
-
-        .video-title {
-            font-size: 1.5em;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: white;
-        }
-
-        .file-info {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 25px 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .download-btn {
@@ -102,7 +72,6 @@
             transition: all 0.3s ease;
             box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
             font-size: 1.1em;
-            margin: 20px 0;
         }
 
         .download-btn:hover {
@@ -137,73 +106,9 @@
             color: #ff6b6b;
         }
 
-        .success-message {
-            background: rgba(72, 187, 120, 0.2);
-            color: #68d391;
-            border: 1px solid rgba(72, 187, 120, 0.3);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            display: none;
-        }
-
-        .back-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            border-radius: 15px;
-            padding: 12px 25px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-            margin-top: 20px;
-        }
-
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .info-text {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9em;
-            margin-top: 20px;
-        }
-
-        .settings-icon {
-            position: fixed;
-            top: 30px;
-            right: 30px;
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.2em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .settings-icon:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: rotate(90deg);
-        }
-
         @media (max-width: 480px) {
             .main-container {
                 padding: 20px 10px;
-            }
-            
-            .app-title {
-                font-size: 2em;
-                letter-spacing: 2px;
             }
             
             .download-content {
@@ -213,22 +118,12 @@
     </style>
 </head>
 <body>
-    <div class="settings-icon">
-        <i class="fas fa-cog"></i>
-    </div>
-
     <div class="main-container">
-        <div class="app-header">
-            <img src="template/eco logo@3x.png" alt="Logo" style="height: 60px; margin-bottom: 15px;">
-           
-        </div>
-        
         <div class="download-card">
             <!-- Loading State -->
             <div id="loading-state" class="loading-state">
                 <div class="loader"></div>
                 <h5 style="color: white;">Loading video...</h5>
-                <p style="color: rgba(255,255,255,0.8);">Please wait</p>
             </div>
 
             <!-- Error State -->
@@ -236,50 +131,17 @@
                 <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
                 <h5>Video Not Found</h5>
                 <p id="error-message">The requested video could not be found.</p>
-                <a href="index.html" class="back-btn">
-                    <i class="fas fa-arrow-left"></i> Back to Home
-                </a>
             </div>
 
             <!-- Main Content -->
             <div id="main-content" style="display: none;">
-                <video id="video-preview" class="video-preview" muted loop autoplay>
+                <video id="video-preview" class="video-preview" muted loop autoplay controls>
                     <source id="video-source" src="" type="video/mp4">
                 </video>
                 
                 <div class="download-content">
-                    <h4 id="video-title" class="video-title">Slow Motion Video</h4>
-                    
-                    <div class="file-info">
-                        <div class="row text-start">
-                            <div class="col-6">
-                                <small style="color: rgba(255,255,255,0.7);">Size:</small><br>
-                                <strong id="file-size">-</strong>
-                            </div>
-                            <div class="col-6">
-                                <small style="color: rgba(255,255,255,0.7);">Quality:</small><br>
-                                <strong>4x Slow Motion</strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="success-message" id="success-message">
-                        <i class="fas fa-check-circle"></i>
-                        <strong>Download Started!</strong><br>
-                        <small>Check your device's download folder</small>
-                    </div>
-
                     <a href="#" class="download-btn" id="download-button">
                         <i class="fas fa-download"></i> Download Video
-                    </a>
-
-                    <div class="info-text">
-                        <i class="fas fa-info-circle"></i>
-                        Compatible with all devices
-                    </div>
-
-                    <a href="index.html" class="back-btn">
-                        <i class="fas fa-arrow-left"></i> Create New Video
                     </a>
                 </div>
             </div>
@@ -341,35 +203,17 @@
                 videoSource.src = this.videoData.path;
                 videoPreview.load();
 
-                // Update video information
-                document.getElementById('video-title').textContent = this.videoData.displayName;
-                document.getElementById('file-size').textContent = this.formatFileSize(this.videoData.size);
-
                 // Setup download button
                 const downloadBtn = document.getElementById('download-button');
                 downloadBtn.href = this.videoData.path;
                 downloadBtn.download = this.videoData.filename;
-                downloadBtn.addEventListener('click', () => {
-                    this.handleDownload();
-                });
 
                 // Show main content
                 document.getElementById('loading-state').style.display = 'none';
                 document.getElementById('main-content').style.display = 'block';
 
                 // Update page title
-                document.title = `Download ${this.videoData.displayName}`;
-            }
-
-            handleDownload() {
-                // Show success message
-                const successMsg = document.getElementById('success-message');
-                successMsg.style.display = 'block';
-
-                // Auto-hide after 3 seconds
-                setTimeout(() => {
-                    successMsg.style.display = 'none';
-                }, 3000);
+                document.title = 'Download Video';
             }
 
             showError(message) {
@@ -377,14 +221,6 @@
                 document.getElementById('main-content').style.display = 'none';
                 document.getElementById('error-message').textContent = message;
                 document.getElementById('error-state').style.display = 'block';
-            }
-
-            formatFileSize(bytes) {
-                if (bytes === 0) return '0 Bytes';
-                const k = 1024;
-                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
             }
         }
 
