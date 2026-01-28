@@ -29,7 +29,7 @@
         }
 
         .main-container {
-            max-width: 500px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 40px 20px;
         }
@@ -43,22 +43,37 @@
             overflow: hidden;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
         }
+        
+        .content-wrapper {
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .video-section, .photo-section-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
 
         .video-preview {
             width: 100%;
             height: auto;
-            max-height: 60vh;
+            max-height: 50vh;
             object-fit: contain;
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 25px 25px 0 0;
+            border-radius: 10px;
         }
 
         .photo-preview {
             width: 100%;
             height: auto;
+            max-height: 50vh;
             object-fit: contain;
             background: rgba(0, 0, 0, 0.3);
-            margin-top: 10px;
+            border-radius: 10px;
         }
 
         .download-content {
@@ -143,21 +158,27 @@
 
             <!-- Main Content -->
             <div id="main-content" style="display: none;">
-                <video id="video-preview" class="video-preview" muted loop autoplay controls>
-                    <source id="video-source" src="" type="video/mp4">
-                </video>
-                
-                <div class="download-content">
-                    <a href="#" class="download-btn" id="download-button">
-                        <i class="fas fa-download"></i> Download Video
-                    </a>
+                <div class="content-wrapper">
+                    <!-- Video Section -->
+                    <div class="video-section">
+                        <video id="video-preview" class="video-preview" muted loop autoplay controls>
+                            <source id="video-source" src="" type="video/mp4">
+                        </video>
+                        <div style="text-align: center; margin-top: 15px;">
+                            <a href="#" class="download-btn" id="download-button" style="width: 100%;">
+                                <i class="fas fa-download"></i> Download Video
+                            </a>
+                        </div>
+                    </div>
                     
                     <!-- Photo Section -->
-                    <div id="photo-section" style="display: none; margin-top: 30px;">
+                    <div id="photo-section" class="photo-section-wrapper" style="display: none;">
                         <img id="photo-preview" class="photo-preview" src="" alt="Processed Photo">
-                        <a href="#" class="download-btn" id="photo-download-button" style="margin-top: 20px;">
-                            <i class="fas fa-download"></i> Download Photo
-                        </a>
+                        <div style="text-align: center; margin-top: 15px;">
+                            <a href="#" class="download-btn" id="photo-download-button" style="width: 100%;">
+                                <i class="fas fa-download"></i> Download Photo
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
