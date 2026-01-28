@@ -52,7 +52,7 @@ session_start();
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, rgba(165, 18, 255, 0.9) 0%, rgba(145, 15, 225, 0.95) 50%, rgba(125, 12, 195, 0.9) 100%);
+            background: linear-gradient(135deg, rgba(128, 57, 125, 0.9) 0%, rgba(108, 47, 105, 0.95) 50%, rgba(88, 37, 85, 0.9) 100%);
             z-index: 0;
             pointer-events: none;
         }
@@ -167,22 +167,22 @@ session_start();
         }
         
         .settings-icon:hover {
-            color: #a512ff;
+            color: #80397D;
         }
         
         .eco-shop-badge {
-            background: linear-gradient(135deg, #a512ff 0%, #c850ff 100%);
+            background: linear-gradient(135deg, #80397D 0%, #A35CA0 100%);
             padding: 8px 16px;
             border-radius: 8px;
             display: inline-block;
             margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(165, 18, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(128, 57, 125, 0.3);
             transition: all 0.3s ease;
         }
         
         .eco-shop-badge:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(165, 18, 255, 0.4);
+            box-shadow: 0 6px 20px rgba(128, 57, 125, 0.4);
         }
         
         .eco-shop-text {
@@ -201,7 +201,7 @@ session_start();
             color: #ffffff;
             letter-spacing: 4px;
             margin: 0 auto 15px;
-            text-shadow: 0 0 20px rgba(165, 18, 255, 0.5);
+            text-shadow: 0 0 20px rgba(128, 57, 125, 0.5);
             text-align: center;
             display: block;
         }
@@ -219,7 +219,7 @@ session_start();
         }
         
         .upload-header-section {
-            background: linear-gradient(135deg, #a512ff 0%, #c850ff 100%);
+            background: linear-gradient(135deg, #80397D 0%, #A35CA0 100%);
             padding: 20px 30px;
             border-radius: 20px 20px 0 0;
             margin: 0 30px;
@@ -240,7 +240,7 @@ session_start();
             border-radius: 0 0 20px 20px;
             margin: 0 30px;
             padding: 30px;
-            border: 1px solid rgba(165, 18, 255, 0.3);
+            border: 1px solid rgba(128, 57, 125, 0.3);
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
@@ -277,13 +277,13 @@ session_start();
         }
         
         .upload-area:hover {
-            border-color: rgba(165, 18, 255, 0.8);
-            background: rgba(165, 18, 255, 0.05);
+            border-color: rgba(128, 57, 125, 0.8);
+            background: rgba(128, 57, 125, 0.05);
         }
         
         .upload-area.dragover {
-            border-color: rgba(200, 80, 255, 0.8);
-            background: rgba(200, 80, 255, 0.05);
+            border-color: rgba(163, 92, 160, 0.8);
+            background: rgba(163, 92, 160, 0.05);
             transform: scale(1.02);
         }
         
@@ -306,11 +306,11 @@ session_start();
         }
         
         .upload-area:hover .upload-icon {
-            border-color: rgba(165, 18, 255, 0.8);
+            border-color: rgba(128, 57, 125, 0.8);
         }
         
         .upload-area:hover .upload-icon i {
-            color: rgba(165, 18, 255, 0.9);
+            color: rgba(128, 57, 125, 0.9);
         }
         
         .upload-text {
@@ -334,7 +334,7 @@ session_start();
         }
         
         .upload-button {
-            background: linear-gradient(135deg, rgba(165, 18, 255, 0.8) 0%, rgba(200, 80, 255, 0.8) 100%);
+            background: linear-gradient(135deg, rgba(128, 57, 125, 0.8) 0%, rgba(163, 92, 160, 0.8) 100%);
             border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 10px;
             padding: 10px 24px;
@@ -345,14 +345,14 @@ session_start();
             cursor: pointer;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(165, 18, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(128, 57, 125, 0.3);
         }
         
         .upload-button:hover {
-            background: linear-gradient(135deg, rgba(165, 18, 255, 1) 0%, rgba(200, 80, 255, 1) 100%);
+            background: linear-gradient(135deg, rgba(128, 57, 125, 1) 0%, rgba(163, 92, 160, 1) 100%);
             border-color: rgba(255, 255, 255, 0.5);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(165, 18, 255, 0.4);
+            box-shadow: 0 6px 20px rgba(128, 57, 125, 0.4);
         }
         
         .upload-button:active {
@@ -373,7 +373,7 @@ session_start();
         }
         
         .progress-bar {
-            background: linear-gradient(90deg, #a512ff 0%, #c850ff 100%);
+            background: linear-gradient(90deg, #80397D 0%, #A35CA0 100%);
             transition: width 0.3s ease;
         }
         
@@ -393,7 +393,7 @@ session_start();
             text-align: center;
             background: rgba(40, 40, 45, 0.8);
             border-radius: 20px;
-            border: 1px solid rgba(165, 18, 255, 0.2);
+            border: 1px solid rgba(128, 57, 125, 0.2);
         }
         
         .result-section {
@@ -402,14 +402,14 @@ session_start();
             padding: 30px;
             background: rgba(40, 40, 45, 0.8);
             border-radius: 20px;
-            border: 1px solid rgba(165, 18, 255, 0.2);
+            border: 1px solid rgba(128, 57, 125, 0.2);
         }
         
         .processing-spinner {
             width: 50px;
             height: 50px;
-            border: 4px solid rgba(165, 18, 255, 0.2);
-            border-top: 4px solid #a512ff;
+            border: 4px solid rgba(128, 57, 125, 0.2);
+            border-top: 4px solid #80397D;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
@@ -450,7 +450,7 @@ session_start();
             background: rgba(40, 40, 45, 0.8);
             border-radius: 20px;
             padding: 25px;
-            border: 1px solid rgba(165, 18, 255, 0.2);
+            border: 1px solid rgba(128, 57, 125, 0.2);
             margin-bottom: 20px;
         }
         
@@ -474,8 +474,8 @@ session_start();
         }
         
         .settings-info {
-            background: rgba(165, 18, 255, 0.1);
-            border: 1px solid rgba(165, 18, 255, 0.3);
+            background: rgba(128, 57, 125, 0.1);
+            border: 1px solid rgba(128, 57, 125, 0.3);
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
@@ -510,7 +510,7 @@ session_start();
         .detail-value {
             font-family: 'SamsungOne', sans-serif;
             font-weight: 700;
-            color: #a512ff;
+            color: #80397D;
             font-size: 16px;
         }
         
@@ -521,7 +521,7 @@ session_start();
         
         .process-btn {
             width: 100%;
-            background: linear-gradient(135deg, #a512ff 0%, #c850ff 100%);
+            background: linear-gradient(135deg, #80397D 0%, #A35CA0 100%);
             border: none;
             border-radius: 16px;
             padding: 20px;
@@ -531,13 +531,13 @@ session_start();
             color: white;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(165, 18, 255, 0.3);
+            box-shadow: 0 8px 25px rgba(128, 57, 125, 0.3);
             margin-top: 25px;
         }
         
         .process-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(165, 18, 255, 0.4);
+            box-shadow: 0 12px 35px rgba(128, 57, 125, 0.4);
         }
         
         .btn-subtitle {
@@ -573,7 +573,7 @@ session_start();
         .progress-percent {
             font-family: 'SamsungOne', sans-serif;
             font-size: 14px;
-            color: #a512ff;
+            color: #80397D;
             font-weight: 700;
         }
         
@@ -600,7 +600,7 @@ session_start();
         }
         
         .btn-download {
-            background: linear-gradient(135deg, #a512ff 0%, #c850ff 100%);
+            background: linear-gradient(135deg, #80397D 0%, #A35CA0 100%);
             border: none;
             border-radius: 16px;
             padding: 15px 25px;
@@ -612,13 +612,13 @@ session_start();
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(165, 18, 255, 0.3);
+            box-shadow: 0 8px 25px rgba(128, 57, 125, 0.3);
             display: inline-block;
         }
         
         .btn-download:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(165, 18, 255, 0.4);
+            box-shadow: 0 12px 35px rgba(128, 57, 125, 0.4);
             color: white;
             text-decoration: none;
         }
