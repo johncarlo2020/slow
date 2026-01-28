@@ -13,12 +13,14 @@ class VideoProcessor {
     constructor() {
         this.currentFile = null;
         this.videoUrl = null;
+        this.photoUrl = null;
         this.initializeEventListeners();
     }
 
     initializeEventListeners() {
         const uploadArea = document.getElementById('upload-area');
         const videoInput = document.getElementById('video-input');
+        const photoInput = document.getElementById('photo-input');
         const processBtn = document.getElementById('process-btn');
 
         // Drag and drop functionality
@@ -53,6 +55,13 @@ class VideoProcessor {
             }
         });
 
+        // Photo input listener
+        photoInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                this.handlePhotoSelect(e.target.files[0]);
+            }
+        });
+
         // Process button
         processBtn.addEventListener('click', () => {
             this.processVideo();
@@ -75,9 +84,9 @@ class VideoProcessor {
     }
 
     handleFileSelect(file) {
-        // Hide choose file section
-        const uploadSection = document.getElementById('upload-section');
-        if (uploadSection) uploadSection.style.display = 'none';
+        // Hide only the video upload area, keep photo upload visible
+        const uploadArea = document.getElementById('upload-area');
+        if (uploadArea) uploadArea.style.display = 'none';
         // Show loader
         let loader = document.getElementById('upload-loader');
         if (!loader) {
@@ -118,14 +127,14 @@ class VideoProcessor {
         const isAcceptedExt = acceptedExtensions.some(ext => fileName.endsWith(ext));
         if (!(fileType.startsWith('video/') || isAcceptedType || isAcceptedExt)) {
             if (loader) loader.style.display = 'none';
-            if (uploadSection) uploadSection.style.display = 'block';
+            if (uploadArea) uploadArea.style.display = 'flex';
             alert('Please select a valid video file (MP4, M4V, MOV, H.264).');
             return;
         }
         // Validate file size (max 100MB)
         if (file.size > 100 * 1024 * 1024) {
             if (loader) loader.style.display = 'none';
-            if (uploadSection) uploadSection.style.display = 'block';
+            if (uploadArea) uploadArea.style.display = 'flex';
             alert('File size must be less than 100MB.');
             return;
         }
@@ -150,25 +159,25 @@ class VideoProcessor {
                         this.showVideoControls(response.videoUrl);
                     } else {
                         const loader = document.getElementById('upload-loader');
-                        const uploadSection = document.getElementById('upload-section');
+                        const uploadArea = document.getElementById('upload-area');
                         if (loader) loader.style.display = 'none';
-                        if (uploadSection) uploadSection.style.display = 'block';
+                        if (uploadArea) uploadArea.style.display = 'flex';
                         console.error('Upload failed:', response.message);
                         alert('Upload failed: ' + response.message);
                     }
                 } else {
                     const loader = document.getElementById('upload-loader');
-                    const uploadSection = document.getElementById('upload-section');
+                    const uploadArea = document.getElementById('upload-area');
                     if (loader) loader.style.display = 'none';
-                    if (uploadSection) uploadSection.style.display = 'block';
+                    if (uploadArea) uploadArea.style.display = 'flex';
                     console.error('Upload failed with status:', xhr.status, xhr.responseText);
                     alert('Upload failed. Please try again.');
                 }
             } catch (error) {
                 const loader = document.getElementById('upload-loader');
-                const uploadSection = document.getElementById('upload-section');
+                const uploadArea = document.getElementById('upload-area');
                 if (loader) loader.style.display = 'none';
-                if (uploadSection) uploadSection.style.display = 'block';
+                if (uploadArea) uploadArea.style.display = 'flex';
                 console.error('Error processing upload response:', error);
                 alert('Upload failed. Please try again.');
             }
@@ -187,12 +196,90 @@ class VideoProcessor {
         xhr.send(formData);
     }
 
+    handlePhotoSelect(file) {
+        // Validate file type
+        const acceptedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        const fileType = file.type.toLowerCase();
+        
+        if (!acceptedTypes.includes(fileType)) {
+            alert('Please select a valid image file (JPG or PNG).');
+            return;
+        }
+        
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('Photo size must be less than 10MB.');
+            return;
+        }
+        
+        // Show preview immediately and hide upload area
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const photoPreview = document.getElementById('photo-preview');
+            const photoPreviewSection = document.getElementById('photo-preview-section');
+            const photoUploadArea = document.getElementById('photo-upload-area');
+            
+            if (photoPreview && photoPreviewSection) {
+                photoPreview.src = e.target.result;
+                photoPreviewSection.style.display = 'block';
+            }
+            
+            // Hide the photo upload area
+            if (photoUploadArea) {
+                photoUploadArea.style.display = 'none';
+            }
+        };
+        reader.readAsDataURL(file);
+        
+        this.uploadPhoto(file);
+    }
+
+    uploadPhoto(file) {
+        const formData = new FormData();
+        formData.append('photo', file);
+
+        const xhr = new XMLHttpRequest();
+
+        xhr.addEventListener('load', () => {
+            try {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        this.photoUrl = response.photoUrl;
+                        this.showToast('Photo uploaded successfully!', 'success');
+                        
+                        // Update UI to show photo uploaded
+                        const photoUploadArea = document.getElementById('photo-upload-area');
+                        photoUploadArea.style.borderColor = '#28a745';
+                        photoUploadArea.querySelector('.upload-text').textContent = 'Photo Uploaded ✓';
+                        photoUploadArea.querySelector('.upload-text').style.color = '#28a745';
+                    } else {
+                        console.error('Photo upload failed:', response.message);
+                        alert('Photo upload failed: ' + response.message);
+                    }
+                } else {
+                    console.error('Photo upload failed with status:', xhr.status, xhr.responseText);
+                    alert('Photo upload failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error processing photo upload response:', error);
+                alert('Photo upload failed. Please try again.');
+            }
+        });
+
+        xhr.addEventListener('error', (event) => {
+            console.error('Photo upload error event:', event);
+            alert('Photo upload failed. Please try again.');
+        });
+
+        xhr.open('POST', 'api/upload.php');
+        xhr.send(formData);
+    }
+
     showVideoControls(videoUrl) {
-        const uploadSection = document.getElementById('upload-section');
         const videoControls = document.getElementById('video-controls');
         const videoPreview = document.getElementById('video-preview');
         const loader = document.getElementById('upload-loader');
-        if (uploadSection) uploadSection.style.display = 'none';
         if (videoControls) videoControls.style.display = 'block';
         if (videoPreview) {
             videoPreview.src = videoUrl;
@@ -205,6 +292,12 @@ class VideoProcessor {
     }
 
     processVideo() {
+        // Check if photo is uploaded
+        if (!this.photoUrl) {
+            alert('Please upload a photo before processing the video.');
+            return;
+        }
+
         // Fixed values for automatic processing
         const startTime = 4.0;  // Always start at 4 seconds
         const endTime = 7.0;    // Always end at 7 seconds
@@ -223,6 +316,7 @@ class VideoProcessor {
 
         const formData = new FormData();
         formData.append('videoUrl', this.videoUrl);
+        formData.append('photoUrl', this.photoUrl);
         formData.append('startTime', startTime);
         formData.append('endTime', endTime);
         formData.append('slowFactor', slowFactor);
@@ -238,7 +332,17 @@ class VideoProcessor {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            return response.json();
+            // Clone the response to read it twice (once for debugging, once for parsing)
+            return response.clone().text().then(text => {
+                console.log('Raw response (first 500 chars):', text.substring(0, 500));
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('JSON parse error:', e);
+                    console.error('Full response:', text);
+                    throw new Error('Invalid JSON response from server');
+                }
+            });
         })
         .then(data => {
             console.log('Process response data:', data);

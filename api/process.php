@@ -15,6 +15,9 @@ if (file_exists(__DIR__ . '/../classes/PusherHelper.php')) {
     }
 }
 
+// Include PhotoProcessor
+require_once __DIR__ . '/process-photo.php';
+
 class VideoProcessor {
     private $uploadsDir;
     private $outputDir;
@@ -75,10 +78,26 @@ class VideoProcessor {
             }
 
             $videoUrl = $_POST['videoUrl'] ?? '';
+            $photoUrl = $_POST['photoUrl'] ?? '';
             $addBackgroundMusic = isset($_POST['addBackgroundMusic']) ? $_POST['addBackgroundMusic'] === 'true' : true;
 
             if (empty($videoUrl)) {
                 throw new Exception('No video URL provided');
+            }
+
+            // Process photo if provided
+            $processedPhotoUrl = null;
+            if (!empty($photoUrl)) {
+                // error_log('Processing photo: ' . $photoUrl);
+                $photoProcessor = new PhotoProcessor();
+                $photoResult = $photoProcessor->processPhoto($photoUrl);
+                
+                if ($photoResult['success']) {
+                    $processedPhotoUrl = $photoResult['processedPhoto'];
+                    // error_log('Photo processed successfully: ' . $processedPhotoUrl);
+                } else {
+                    // error_log('Photo processing failed: ' . $photoResult['message']);
+                }
             }
 
             // Extract filename from URL
@@ -100,9 +119,11 @@ class VideoProcessor {
                 'message' => 'Background music added successfully',
                 'originalVideo' => $videoUrl,
                 'processedVideo' => 'processed/' . $outputFilename,
+                'processedPhoto' => $processedPhotoUrl,
                 'settings' => [
                     'mode' => 'Background Music Only',
-                    'backgroundMusic' => $addBackgroundMusic ? 'Added' : 'Skipped'
+                    'backgroundMusic' => $addBackgroundMusic ? 'Added' : 'Skipped',
+                    'photoProcessed' => $processedPhotoUrl ? 'Yes' : 'No'
                 ]
             ];
 
@@ -387,4 +408,3 @@ class VideoProcessor {
 // Handle the processing request
 $processor = new VideoProcessor();
 $processor->processVideo();
-?>

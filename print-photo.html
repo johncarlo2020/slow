@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Photo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .print-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .photo-wrapper {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .photo-display {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .print-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .print-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+            color: white;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .close-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .close-btn:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .print-container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+
+            .control-buttons {
+                display: none !important;
+            }
+
+            .photo-wrapper {
+                margin: 0;
+            }
+
+            .photo-display {
+                max-width: 100%;
+                box-shadow: none;
+                border-radius: 0;
+                page-break-inside: avoid;
+            }
+
+            h1 {
+                display: none;
+            }
+        }
+
+        @page {
+            size: auto;
+            margin: 10mm;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="print-container">
+        <!-- Loading State -->
+        <div id="loading-state" class="loading-state">
+            <h3>Loading photo...</h3>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="error-state" style="display: none;">
+            <h3>Photo not found</h3>
+            <p>Unable to load the requested photo.</p>
+        </div>
+
+        <!-- Main Content -->
+        <div id="main-content" style="display: none;">
+            <h1>Photo Preview</h1>
+            
+            <div class="photo-wrapper">
+                <img id="photo-img" class="photo-display" src="" alt="Photo">
+            </div>
+
+            <div class="control-buttons">
+                <button class="btn print-btn" onclick="printPhoto()">
+                    🖨️ Print Photo
+                </button>
+                <button class="btn download-btn" onclick="downloadPhoto()">
+                    ⬇️ Download Photo
+                </button>
+                <button class="btn close-btn" onclick="window.close()">
+                    ✖️ Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let photoUrl = '';
+
+        function init() {
+            // Get photo URL from query parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            photoUrl = urlParams.get('photo');
+
+            if (!photoUrl) {
+                showError();
+                return;
+            }
+
+            // Load and display photo
+            const photoImg = document.getElementById('photo-img');
+            photoImg.onload = function() {
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+            };
+
+            photoImg.onerror = function() {
+                showError();
+            };
+
+            photoImg.src = photoUrl;
+        }
+
+        function showError() {
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('error-state').style.display = 'block';
+        }
+
+        function printPhoto() {
+            window.print();
+        }
+
+        function downloadPhoto() {
+            const link = document.createElement('a');
+            link.href = photoUrl;
+            link.download = 'photo-' + Date.now() + '.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

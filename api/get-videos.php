@@ -69,10 +69,14 @@ class VideoManager {
             // Only include video files
             if (!$this->isVideoFile($file) || !is_file($filePath)) continue;
             
+            // Try to find associated photo
+            $photoPath = $this->findAssociatedPhoto($file);
+            
             $videos[] = [
                 'filename' => $file,
                 'displayName' => $this->getDisplayName($file),
                 'path' => 'processed/' . $file,
+                'photoPath' => $photoPath,
                 'size' => filesize($filePath),
                 'created' => filemtime($filePath)
             ];
@@ -85,6 +89,40 @@ class VideoManager {
         $videoExtensions = ['mp4', 'avi', 'mov', 'wmv', 'webm', 'mkv', 'flv'];
         $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
         return in_array($extension, $videoExtensions);
+    }
+
+    private function findAssociatedPhoto($videoFilename) {
+        // Extract base name and timestamp from video filename
+        // e.g., processed_video_20260128-065108_1769579477.mp4
+        $photoDir = '../processed/photos/';
+        
+        if (!is_dir($photoDir)) {
+            return null;
+        }
+        
+        // Get all photos and try to match by timestamp pattern
+        $photos = scandir($photoDir);
+        
+        // Extract timestamp from video filename (the part after the last underscore before extension)
+        if (preg_match('/_([0-9]+)\.[^.]+$/', $videoFilename, $matches)) {
+            $videoTimestamp = $matches[1];
+            
+            // Look for photo with similar timestamp (within a few seconds)
+            foreach ($photos as $photo) {
+                if ($photo === '.' || $photo === '..') continue;
+                
+                if (preg_match('/_([0-9]+)\.[^.]+$/', $photo, $photoMatches)) {
+                    $photoTimestamp = $photoMatches[1];
+                    
+                    // If timestamps are within 10 seconds, consider them related
+                    if (abs($videoTimestamp - $photoTimestamp) <= 10) {
+                        return 'processed/photos/' . $photo;
+                    }
+                }
+            }
+        }
+        
+        return null;
     }
 
     private function getDisplayName($filename) {

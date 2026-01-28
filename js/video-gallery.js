@@ -328,6 +328,17 @@ class VideoGallery {
         document.getElementById('modal-download-btn').href = video.path;
         document.getElementById('modal-download-btn').download = video.filename;
         
+        // Show photo if available
+        const photoContainer = document.getElementById('modal-photo-container');
+        const modalPhoto = document.getElementById('modal-photo');
+        
+        if (video.photoPath) {
+            modalPhoto.src = video.photoPath;
+            photoContainer.style.display = 'block';
+        } else {
+            photoContainer.style.display = 'none';
+        }
+        
         // Store current video for deletion
         this.currentModalVideo = filename;
         

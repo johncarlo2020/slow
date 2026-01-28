@@ -37,6 +37,7 @@ class VideoInfo {
                 'filename' => $filename,
                 'displayName' => $this->getDisplayName($filename),
                 'path' => 'processed/' . $filename,
+                'photoPath' => $this->findAssociatedPhoto($filename),
                 'size' => filesize($filePath),
                 'created' => filemtime($filePath)
             ];
@@ -94,6 +95,39 @@ class VideoInfo {
         }
         
         return $name;
+    }
+
+    private function findAssociatedPhoto($videoFilename) {
+        // Extract base name and timestamp from video filename
+        $photoDir = '../processed/photos/';
+        
+        if (!is_dir($photoDir)) {
+            return null;
+        }
+        
+        // Get all photos and try to match by timestamp pattern
+        $photos = scandir($photoDir);
+        
+        // Extract timestamp from video filename (the part after the last underscore before extension)
+        if (preg_match('/_([0-9]+)\.[^.]+$/', $videoFilename, $matches)) {
+            $videoTimestamp = $matches[1];
+            
+            // Look for photo with similar timestamp (within a few seconds)
+            foreach ($photos as $photo) {
+                if ($photo === '.' || $photo === '..') continue;
+                
+                if (preg_match('/_([0-9]+)\.[^.]+$/', $photo, $photoMatches)) {
+                    $photoTimestamp = $photoMatches[1];
+                    
+                    // If timestamps are within 10 seconds, consider them related
+                    if (abs($videoTimestamp - $photoTimestamp) <= 10) {
+                        return 'processed/photos/' . $photo;
+                    }
+                }
+            }
+        }
+        
+        return null;
     }
 
     private function generateQRUrl($downloadUrl) {

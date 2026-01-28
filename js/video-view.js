@@ -59,6 +59,17 @@ class VideoView {
         
         videoSource.src = this.videoData.path;
         videoPlayer.load();
+        
+        // Display photo if available
+        if (this.videoData.photoPath) {
+            const photoFrame = document.getElementById('photo-frame');
+            const photoDisplay = document.getElementById('photo-display');
+            
+            if (photoFrame && photoDisplay) {
+                photoDisplay.src = this.videoData.photoPath;
+                photoFrame.style.display = 'block';
+            }
+        }
 
         // Show main content
         const loadingState = document.getElementById('loading-state');

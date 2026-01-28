@@ -137,7 +137,7 @@ session_start();
             border-radius: 28px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            max-width: 500px;
+            max-width: 1200px;
             width: 100%;
             overflow: hidden;
             position: relative;
@@ -241,6 +241,15 @@ session_start();
             margin: 0 30px;
             padding: 30px;
             border: 1px solid rgba(165, 18, 255, 0.3);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 767px) {
+            #upload-section {
+                grid-template-columns: 1fr;
+            }
         }
         
         .upload-title {
@@ -255,12 +264,12 @@ session_start();
         .upload-area {
             background: transparent;
             border: 2px dashed rgba(255, 255, 255, 0.4);
-            border-radius: 20px;
-            padding: 60px 20px;
+            border-radius: 16px;
+            padding: 30px 20px;
             text-align: center;
             position: relative;
             transition: all 0.3s ease;
-            min-height: 400px;
+            min-height: 200px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -279,20 +288,20 @@ session_start();
         }
         
         .upload-icon {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             background: transparent;
             border: 2px solid rgba(255, 255, 255, 0.6);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            margin: 0 auto 15px;
             transition: all 0.3s ease;
         }
         
         .upload-icon i {
-            font-size: 24px;
+            font-size: 20px;
             color: rgba(255, 255, 255, 0.8);
         }
         
@@ -306,10 +315,18 @@ session_start();
         
         .upload-text {
             font-family: 'SamsungOne', sans-serif;
-            font-size: 16px;
-            font-weight: 400;
+            font-size: 15px;
+            font-weight: 500;
             color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 25px;
+            margin-bottom: 8px;
+        }
+        
+        .upload-subtext {
+            font-family: 'SamsungOne', sans-serif;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin: 5px 0 15px 0;
+            line-height: 1.4;
         }
         
         .file-input {
@@ -317,23 +334,25 @@ session_start();
         }
         
         .upload-button {
-            background: rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, rgba(165, 18, 255, 0.8) 0%, rgba(200, 80, 255, 0.8) 100%);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            padding: 12px 24px;
+            border-radius: 10px;
+            padding: 10px 24px;
             font-family: 'SamsungOne', sans-serif;
-            font-size: 14px;
-            font-weight: 400;
-            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            font-weight: 600;
+            color: white;
             cursor: pointer;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(165, 18, 255, 0.3);
         }
         
         .upload-button:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: linear-gradient(135deg, rgba(165, 18, 255, 1) 0%, rgba(200, 80, 255, 1) 100%);
             border-color: rgba(255, 255, 255, 0.5);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(165, 18, 255, 0.4);
         }
         
         .upload-button:active {
@@ -446,6 +465,7 @@ session_start();
         .video-preview {
             width: 100%;
             max-width: 100%;
+            max-height: 400px;
             height: auto;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -621,10 +641,10 @@ session_start();
             transform: translateY(-1px);
         }
         
-        /* iPad specific optimizations */
+        /* iPad and larger screens */
         @media (min-width: 768px) and (max-width: 1024px) {
             .samsung-card {
-                max-width: 700px;
+                max-width: 1000px;
                 margin: 30px auto;
             }
             
@@ -697,9 +717,9 @@ session_start();
         /* Mobile responsiveness */
         @media (max-width: 767px) {
             .samsung-card {
-                margin: 15px;
-                border-radius: 24px;
-                max-width: calc(100vw - 30px);
+                margin: 10px;
+                border-radius: 20px;
+                max-width: calc(100vw - 20px);
             }
             
             .samsung-logo {
@@ -840,20 +860,48 @@ session_start();
             <div class="card-body">
                 <!-- Upload Header -->
                 <div class="upload-header-section">
-                    <h3 class="upload-section-title">Upload your video here</h3>
+                    <h3 class="upload-section-title">
+                        <i class="fas fa-cloud-upload-alt" style="margin-right: 10px;"></i>
+                        Upload Your Files
+                    </h3>
                 </div>
                 
                 <!-- Upload Section -->
                 <div id="upload-section">
-                    <div class="upload-area" id="upload-area">
+                    <!-- Video Upload -->
+                    <div class="upload-area" id="upload-area" style="display: flex;">
                         <div class="upload-icon">
-                            <i class="fas fa-upload"></i>
+                            <i class="fas fa-video"></i>
                         </div>
-                        <p class="upload-text">Choose Video File</p>
+                        <p class="upload-text"><strong>Step 1:</strong> Choose Video File</p>
+                        <p class="upload-subtext">MP4, MOV, WEBM (Max 100MB)</p>
                         <input type="file" id="video-input" accept="video/*" style="display: none;">
                         <button class="upload-button" onclick="document.getElementById('video-input').click()">
-                            Choose File
+                            <i class="fas fa-folder-open" style="margin-right: 6px;"></i>Browse Video
                         </button>
+                    </div>
+                    
+                    <!-- Photo Upload -->
+                    <div class="upload-area" id="photo-upload-area" style="display: flex;">
+                        <div class="upload-icon">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <p class="upload-text"><strong>Step 2:</strong> Choose Photo for Template</p>
+                        <p class="upload-subtext">JPG or PNG (Max 10MB)<br>Photo will fit in the template's transparent areas</p>
+                        <input type="file" id="photo-input" accept="image/jpeg,image/jpg,image/png" style="display: none;">
+                        <button class="upload-button" onclick="document.getElementById('photo-input').click()">
+                            <i class="fas fa-folder-open" style="margin-right: 6px;"></i>Browse Photo
+                        </button>
+                    </div>
+                    
+                    <!-- Photo Preview -->
+                    <div id="photo-preview-section" style="display: none; grid-column: 1 / -1;">
+                        <div class="video-card">
+                            <h5 class="card-title">
+                                <i class="fas fa-image me-2"></i>Photo Preview
+                            </h5>
+                            <img id="photo-preview" class="video-preview" style="width: 100%; max-height: 300px; border-radius: 15px; object-fit: contain; background: #000;" />
+                        </div>
                     </div>
                 </div>
                 

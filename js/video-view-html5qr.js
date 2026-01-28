@@ -73,6 +73,27 @@ class VideoView {
         videoPlayer.loop = false;
         
         videoPlayer.load();
+        
+        // Display photo if available
+        if (this.videoData.photoPath) {
+            const photoFrame = document.getElementById('photo-frame');
+            const photoDisplay = document.getElementById('photo-display');
+            const printBtn = document.getElementById('print-photo-btn');
+            
+            if (photoFrame && photoDisplay) {
+                console.log('Setting photo source to:', this.videoData.photoPath);
+                photoDisplay.src = this.videoData.photoPath;
+                photoFrame.style.display = 'block';
+                
+                // Show print button
+                if (printBtn) {
+                    printBtn.style.display = 'flex';
+                    printBtn.onclick = () => {
+                        window.open(`print-photo.html?photo=${encodeURIComponent(this.videoData.photoPath)}`, '_blank');
+                    };
+                }
+            }
+        }
 
         // Set up direct download
         if (directDownload && this.downloadUrl) {
