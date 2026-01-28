@@ -16,7 +16,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #C82026;
+            background: #a512ff;
             min-height: 100vh;
             overflow: hidden;
         }
@@ -416,7 +416,7 @@
             <!-- Video Frame (Samsung Style) -->
             <div class="video-frame">
                 <div class="video-container">
-                    <video id="video-player" class="video-player" controls poster="">
+                    <video id="video-player" class="video-player" controls>
                         <source id="video-source" src="" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
@@ -425,15 +425,8 @@
 
             <!-- Download Section -->
             <div class="download-section">
-                <a href="#" id="direct-download" class="direct-download">
-                    <i class="fas fa-download"></i>
-                    Direct Download
-                </a>
-
                 <!-- QR Code Section -->
                 <div class="qr-section">
-                    <div class="qr-title">Scan to download on your device</div>
-                    
                     <div id="qr-loading" class="loading-qr">
                         <div class="spinner"></div>
                         <span>Generating QR Code...</span>
@@ -442,20 +435,6 @@
                     <div id="qr-code-container" class="qr-code" style="display: none;">
                         <!-- QR code will be inserted here -->
                     </div>
-                </div>
-            </div>
-        </div>
-                    <i class="fas fa-tablet-alt"></i>
-                </div>
-
-                <div class="download-hint">
-                    <h6><i class="fas fa-info-circle"></i> How to Download</h6>
-                    <small>
-                        1. Open camera app<br>
-                        2. Point at QR code<br>
-                        3. Tap notification<br>
-                        4. Download starts
-                    </small>
                 </div>
             </div>
         </div>

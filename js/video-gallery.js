@@ -12,21 +12,31 @@ class VideoGallery {
     }
 
     initializePusher() {
-        // Initialize Pusher with your actual credentials
-        this.pusher = new Pusher('60de59064bcf7cfb6d63', {
-            cluster: 'ap1'
-        });
+        // Check if Pusher is available
+        if (typeof Pusher === 'undefined') {
+            console.warn('Pusher library not loaded. Real-time updates disabled.');
+            return;
+        }
 
-        // Subscribe to the video processing channel
-        this.channel = this.pusher.subscribe('video-processing');
-        
-        // Listen for new video processed events
-        this.channel.bind('video-processed', (data) => {
-            console.log('New video processed:', data);
-            this.handleNewVideoProcessed(data);
-        });
-        
-        console.log('Pusher initialized and listening for new videos');
+        try {
+            // Initialize Pusher with your actual credentials
+            this.pusher = new Pusher('60de59064bcf7cfb6d63', {
+                cluster: 'ap1'
+            });
+
+            // Subscribe to the video processing channel
+            this.channel = this.pusher.subscribe('video-processing');
+            
+            // Listen for new video processed events
+            this.channel.bind('video-processed', (data) => {
+                console.log('New video processed:', data);
+                this.handleNewVideoProcessed(data);
+            });
+            
+            console.log('Pusher initialized and listening for new videos');
+        } catch (error) {
+            console.error('Error initializing Pusher:', error);
+        }
     }
 
     handleNewVideoProcessed(data) {
