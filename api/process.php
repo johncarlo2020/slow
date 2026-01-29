@@ -130,12 +130,27 @@ class VideoProcessor {
             // Trigger Pusher event for real-time gallery update
             global $pusherHelper;
             if ($pusherHelper) {
-                $pusherHelper->triggerVideoProcessed([
-                    'filename' => $outputFilename,
-                    'originalVideo' => $videoUrl,
-                    'processedVideo' => 'processed/' . $outputFilename,
-                    'timestamp' => time()
-                ]);
+                $pusherData = [
+                    'video' => [
+                        'filename' => $outputFilename,
+                        'path' => 'processed/' . $outputFilename,
+                        'size' => file_exists($outputPath) ? filesize($outputPath) : 0,
+                        'created' => time()
+                    ]
+                ];
+                
+                // Add photo data if photo was processed
+                if ($processedPhotoUrl) {
+                    $photoPath = '../' . $processedPhotoUrl;
+                    $pusherData['photo'] = [
+                        'filename' => basename($processedPhotoUrl),
+                        'path' => $processedPhotoUrl,
+                        'size' => file_exists($photoPath) ? filesize($photoPath) : 0,
+                        'created' => time()
+                    ];
+                }
+                
+                $pusherHelper->triggerVideoProcessed($pusherData);
             }
 
             echo json_encode($responseData);

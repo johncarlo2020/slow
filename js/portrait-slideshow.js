@@ -14,26 +14,8 @@ class PortraitSlideshow {
         // State
         this.isLoading = true;
         
-        this.initializePusher();
         this.initializeElements();
         this.loadContent();
-    }
-
-    initializePusher() {
-        // Initialize Pusher for real-time updates
-        this.pusher = new Pusher('60de59064bcf7cfb6d63', {
-            cluster: 'ap1'
-        });
-
-        this.channel = this.pusher.subscribe('video-processing');
-        
-        // Listen for new video processed events
-        this.channel.bind('video-processed', (data) => {
-            console.log('New video processed:', data);
-            this.handleNewVideo(data);
-        });
-        
-        console.log('Pusher initialized for portrait slideshow');
     }
 
     initializeElements() {
@@ -112,8 +94,10 @@ class PortraitSlideshow {
             console.log('Videos API response:', data);
 
             if (data.success && data.videos.length > 0) {
+                // Store only video metadata (paths, info) - NOT DOM elements
+                // This saves memory by not loading all videos into DOM at once
                 this.videos = data.videos;
-                console.log(`Loaded ${this.videos.length} videos`);
+                console.log(`Loaded ${this.videos.length} video references`);
                 this.loadVideoSet(0);
             } else {
                 console.log('No videos available');
@@ -150,10 +134,12 @@ class PortraitSlideshow {
             return;
         }
 
-        console.log(`Loading video set ${setIndex}: ${videoSet.length} videos`);
+        console.log(`Loading video set ${setIndex}: ${videoSet.length} videos (${startIndex}-${endIndex-1})`);
         this.currentVideoSet = setIndex;
         this.currentVideoIndex = 0;
 
+        // Clear and rebuild only current set (saves memory)
+        // Only 5 video elements in DOM at a time instead of all videos
         this.videoSlidesContainer.innerHTML = '';
         
         videoSet.forEach((video, index) => {
@@ -232,6 +218,9 @@ class PortraitSlideshow {
         // Change photo when video ends
         this.nextPhoto();
         
+        // Check for new videos/photos from folder
+        this.checkForNewContent();
+        
         // Hide current video
         videoSlides[this.currentVideoIndex].classList.remove('active');
         
@@ -264,13 +253,41 @@ class PortraitSlideshow {
         }
     }
 
-    handleNewVideo(data) {
-        console.log('Handling new video:', data);
-        
-        // Reload videos to get the latest
-        this.loadVideos().then(() => {
-            console.log('Videos reloaded after new video processed');
-        });
+    async checkForNewContent() {
+        try {
+            // Check if there are new videos in the folder
+            const response = await fetch(`api/get-videos.php?limit=1&page=1`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.videos.length > 0) {
+                    const latestVideo = data.videos[0];
+                    
+                    // Check if this is a new video we don't have yet
+                    const exists = this.videos.some(v => v.path === latestVideo.path);
+                    if (!exists) {
+                        console.log('New video detected from folder:', latestVideo);
+                        this.videos.unshift(latestVideo);
+                        
+                        // Check for new photo
+                        const photoResponse = await fetch(`api/get-processed-photos.php?limit=1&page=1`);
+                        if (photoResponse.ok) {
+                            const photoData = await photoResponse.json();
+                            if (photoData.success && photoData.photos.length > 0) {
+                                const latestPhoto = photoData.photos[0];
+                                const photoExists = this.photos.some(p => p.path === latestPhoto.path);
+                                if (!photoExists) {
+                                    console.log('New photo detected from folder:', latestPhoto);
+                                    this.photos.unshift(latestPhoto);
+                                    this.createPhotoSlides();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error checking for new content:', error);
+        }
     }
 
     updatePhotoCounter() {
